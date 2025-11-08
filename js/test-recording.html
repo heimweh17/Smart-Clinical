@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recording Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: white;
+    }
+    
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #0021A5;
+      color: white;
+    }
+    
+    button:hover {
+      background: #001580;
+    }
+    
+    button:disabled {
+      background: #666;
+      cursor: not-allowed;
+    }
+    
+    #chat {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 20px;
+      min-height: 300px;
+      margin-top: 20px;
+      overflow-y: auto;
+    }
+    
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      background: #333;
+      border-left: 3px solid #0021A5;
+    }
+    
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      background: #2d3748;
+    }
+    
+    .error {
+      background: #742a2a;
+      color: #feb2b2;
+    }
+    
+    .success {
+      background: #2f855a;
+      color: #9ae6b4;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎙️ Recording Test</h1>
+  
+  <div class="status" id="status">
+    Status: Not recording
+  </div>
+  
+  <button id="startBtn">Start Recording</button>
+  <button id="stopBtn" disabled>Stop Recording</button>
+  
+  <div id="chat">
+    <p style="text-align: center; color: #888;">Click "Start Recording" to begin</p>
+  </div>
+
+  <script src="deepgram-config.js"></script>
+  <script src="medical-transcription.js"></script>
+  
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const chat = document.getElementById('chat');
+    const status = document.getElementById('status');
+    
+    let transcription = null;
+    
+    // Check if scripts loaded
+    if (typeof DEEPGRAM_CONFIG === 'undefined') {
+      status.className = 'status error';
+      status.textContent = '❌ Error: deepgram-config.js not loaded';
+      console.error('DEEPGRAM_CONFIG not found');
+    } else if (!DEEPGRAM_CONFIG.apiKey || DEEPGRAM_CONFIG.apiKey === 'YOUR_DEEPGRAM_API_KEY_HERE') {
+      status.className = 'status error';
+      status.textContent = '❌ Error: Deepgram API key not configured';
+      console.error('API key not configured');
+    } else if (typeof MedicalTranscription === 'undefined') {
+      status.className = 'status error';
+      status.textContent = '❌ Error: medical-transcription.js not loaded';
+      console.error('MedicalTranscription class not found');
+    } else {
+      status.className = 'status success';
+      status.textContent = '✅ Scripts loaded successfully';
+      console.log('✅ All scripts loaded');
+      
+      // Initialize transcription
+      transcription = new MedicalTranscription();
+    }
+    
+    // Start button
+    startBtn.addEventListener('click', async () => {
+      if (!transcription) {
+        alert('Transcription system not initialized. Check console for errors.');
+        return;
+      }
+      
+      console.log('🎙️ Starting recording...');
+      status.className = 'status';
+      status.textContent = 'Requesting microphone access...';
+      
+      try {
+        await transcription.start((segment) => {
+          console.log('📝 Transcript segment:', segment);
+          
+          if (segment.isFinal) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+              <strong>${segment.speaker}</strong> 
+              <span style="float: right; color: #888; font-size: 0.9em;">${segment.timestamp}</span>
+              <div style="margin-top: 5px;">${segment.text}</div>
+            `;
+            
+            // Remove "Click to begin" message
+            if (chat.children.length === 1 && chat.children[0].tagName === 'P') {
+              chat.innerHTML = '';
+            }
+            
+            chat.appendChild(messageDiv);
+            chat.scrollTop = chat.scrollHeight;
+          }
+        });
+        
+        status.className = 'status success';
+        status.textContent = '🔴 Recording in progress...';
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        console.log('✅ Recording started');
+        
+      } catch (error) {
+        console.error('❌ Error starting recording:', error);
+        status.className = 'status error';
+        
+        if (error.message.includes('Permission denied')) {
+          status.textContent = '❌ Microphone access denied. Please allow microphone access.';
+        } else if (error.message.includes('NotFoundError')) {
+          status.textContent = '❌ No microphone found. Please connect a microphone.';
+        } else if (error.message.includes('NotAllowedError')) {
+          status.textContent = '❌ Microphone access blocked. Check browser permissions.';
+        } else {
+          status.textContent = '❌ Error: ' + error.message;
+        }
+      }
+    });
+    
+    // Stop button
+    stopBtn.addEventListener('click', async () => {
+      console.log('⏹️ Stopping recording...');
+      
+      try {
+        await transcription.stop();
+        
+        status.className = 'status';
+        status.textContent = 'Recording stopped';
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        console.log('✅ Recording stopped');
+        
+        const transcript = transcription.getTranscript();
+        console.log(`📄 Total segments: ${transcript.length}`);
+        
+      } catch (error) {
+        console.error('❌ Error stopping recording:', error);
+        status.className = 'status error';
+        status.textContent = '❌ Error stopping: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>
