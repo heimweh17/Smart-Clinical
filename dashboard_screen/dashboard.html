@@ -19,7 +19,7 @@
                         <div class="doctor-title">MD</div>
                     </div>
                 </div>
-                <button class="logout-btn">Log Out</button>
+                <button class="logout-btn" id="logoutBtn">Log Out</button>
             </div>
         </div>
     </header>
@@ -171,6 +171,28 @@
         </div>
     </main>
 
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Configuration -->
+    <script src="../js/supabase.js"></script>
+    <!-- Page Protection Script -->
+    <script>
+      // Protect this page - require authentication
+      (async function() {
+        await protectPage();
+
+        // Add logout functionality
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', async function() {
+            const success = await signOut();
+            if (success) {
+              window.location.href = '../index.html';
+            }
+          });
+        }
+      })();
+    </script>
     <script src="script.js"></script>
 </body>
 </html>
