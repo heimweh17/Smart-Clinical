@@ -29,7 +29,7 @@
         <!-- Title and Search -->
         <div class="content-header">
             <h2 class="page-title">Today's Consultations</h2>
-            <div class="search-container">
+            <div class="search-container" id="searchContainer">
                 <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="11" cy="11" r="8"></circle>
                     <path d="m21 21-4.35-4.35"></path>
@@ -46,11 +46,76 @@
             </div>
         </div>
 
+    <!-- Add Patient Button (Center for empty state) -->
+  <div class="add-patient-center-container" id="addPatientCenterContainer" style="display: none; padding: 2rem 0;">
+      <button class="add-patient-btn" id="addPatientBtnCenter">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="16"></line>
+          <line x1="8" y1="12" x2="16" y2="12"></line>
+        </svg>
+        Add Patient
+      </button>
+    </div>
+
+        <!-- Add Patient Button (Bottom) -->
+        <div class="add-patient-bottom-container" id="addPatientBottomContainer" style="display: none;">
+            <button class="add-patient-btn" id="addPatientBtnBottom">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                Add Patient
+            </button>
+        </div>
+
         <!-- No Results Message -->
         <div class="no-results" id="noResults" style="display: none;">
             <p>No patients found matching your search.</p>
         </div>
     </main>
+
+    <!-- Add Patient Modal -->
+    <div class="modal-overlay" id="addPatientModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Patient</h2>
+                <button class="modal-close" id="closeModalBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <form id="addPatientForm" class="modal-form">
+                <div class="form-group-modal">
+                    <label for="patientName">Patient Name *</label>
+                    <input type="text" id="patientName" name="patientName" placeholder="Enter full name" required>
+                </div>
+                <div class="form-group-modal">
+                    <label for="patientDOB">Date of Birth *</label>
+                    <input type="date" id="patientDOB" name="patientDOB" required>
+                </div>
+                <div class="form-group-modal">
+                    <label for="visitDate">Visit Date & Time *</label>
+                    <input type="datetime-local" id="visitDate" name="visitDate" required>
+                </div>
+                <div class="form-info">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <span>MRN will be automatically generated</span>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="cancelModalBtn">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Patient</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -128,12 +193,23 @@
       async function loadPatients() {
         const patientList = document.getElementById('patientList');
 
+        const centerAddContainer = document.getElementById('addPatientCenterContainer');
+        const bottomAddContainer = document.getElementById('addPatientBottomContainer');
+
         try {
-          // Fetch patients from Supabase
+          // Get current user
+          const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+          if (userError || !user) {
+            throw new Error('You must be logged in to view patients');
+          }
+
+          // Fetch patients from Supabase (only for current user)
           const { data: patients, error } = await supabase
             .from('patients')
             .select('*')
-            .order('visit_date', { ascending: true });
+            .eq('user_id', user.id)
+            .order('visit_date', { ascending: true});
 
           if (error) {
             throw error;
@@ -147,13 +223,74 @@
           // Check if there are patients
           if (!patients || patients.length === 0) {
             patientList.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">No patients found. Add patients to get started.</div>';
+
+            // Show centered add button and hide bottom add
+            if (centerAddContainer) centerAddContainer.style.display = 'flex';
+            if (bottomAddContainer) bottomAddContainer.style.display = 'none';
+
+            // Attach click handler to center add button (if present)
+            const centerBtn = document.getElementById('addPatientBtnCenter');
+            if (centerBtn) {
+              centerBtn.onclick = () => openAddPatientModal();
+            }
+
             return;
           }
 
-          // Render each patient card
+          // There are patients -> hide center add and show bottom add
+          if (centerAddContainer) centerAddContainer.style.display = 'none';
+          if (bottomAddContainer) bottomAddContainer.style.display = 'flex';
+
+          // Attach click handler to bottom add button
+          const bottomBtn = document.getElementById('addPatientBtnBottom');
+          if (bottomBtn) bottomBtn.onclick = () => openAddPatientModal();
+
+          // Render each patient card and attach per-card handlers
           patients.forEach((patient, index) => {
             const patientCard = createPatientCard(patient, index);
             patientList.appendChild(patientCard);
+
+            // Attach handlers for the appended card
+            // Delete button
+            const deleteBtn = patientCard.querySelector('.delete-btn');
+            if (deleteBtn) {
+              deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                if (!confirm('Delete this patient? This action cannot be undone.')) return;
+
+                try {
+                  const { error } = await supabase.from('patients').delete().eq('id', patient.id);
+                  if (error) throw error;
+                  // Remove the card from DOM
+                  patientCard.remove();
+
+                  // If no more patient cards, reload to show empty state
+                  const remaining = document.querySelectorAll('.patient-card').length;
+                  if (remaining === 0) await loadPatients();
+                } catch (err) {
+                  console.error('Error deleting patient:', err);
+                  alert('Failed to delete patient: ' + (err.message || err));
+                }
+              });
+            }
+
+            // Action buttons and card click (view)
+            const actionBtns = patientCard.querySelectorAll('.action-btn');
+            actionBtns.forEach((btn) => {
+              btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Placeholder actions - can be wired to actual routes
+                const title = this.getAttribute('title') || 'Action';
+                alert(`${title} for ${patient.patient_name}`);
+              });
+            });
+
+            // Card click navigates or opens details
+            patientCard.addEventListener('click', function() {
+              // Navigate to patient details (placeholder)
+              // e.g. window.location.href = `patient-details.html?mrn=${patient.mrn}`;
+              alert(`Opening consultation for ${patient.patient_name}`);
+            });
           });
 
           // Initialize search functionality after loading patients
@@ -209,6 +346,14 @@
                 <line x1="16" y1="13" x2="8" y2="13"></line>
                 <line x1="16" y1="17" x2="8" y2="17"></line>
                 <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </button>
+            <button class="delete-btn" title="Remove Patient">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                <path d="M10 11v6"></path>
+                <path d="M14 11v6"></path>
               </svg>
             </button>
           </div>
@@ -285,6 +430,133 @@
           // Show/hide no results message
           if (noResults) {
             noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+          }
+        });
+      }
+
+      // Modal functionality
+      const addPatientModal = document.getElementById('addPatientModal');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const cancelModalBtn = document.getElementById('cancelModalBtn');
+      const addPatientForm = document.getElementById('addPatientForm');
+
+      // Open modal helper (used by center and bottom add buttons)
+      function openAddPatientModal() {
+        if (!addPatientModal) return;
+        addPatientModal.style.display = 'flex';
+        // Set default visit date to now
+        const visitDateInput = document.getElementById('visitDate');
+        if (visitDateInput && !visitDateInput.value) {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          const hours = String(now.getHours()).padStart(2, '0');
+          const minutes = String(now.getMinutes()).padStart(2, '0');
+          visitDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+      }
+
+      // Close modal
+      function closeModal() {
+        addPatientModal.style.display = 'none';
+        addPatientForm.reset();
+      }
+
+      if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
+      }
+
+      if (cancelModalBtn) {
+        cancelModalBtn.addEventListener('click', closeModal);
+      }
+
+      // Close modal when clicking outside
+      addPatientModal?.addEventListener('click', function(e) {
+        if (e.target === addPatientModal) {
+          closeModal();
+        }
+      });
+
+      // Handle form submission
+      if (addPatientForm) {
+        addPatientForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+
+          const submitBtn = addPatientForm.querySelector('.btn-primary');
+          const originalText = submitBtn.textContent;
+
+          try {
+            // Get form values
+            const patientName = document.getElementById('patientName').value.trim();
+            const patientDOB = document.getElementById('patientDOB').value;
+            const visitDate = document.getElementById('visitDate').value;
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Adding...';
+
+            // Get current user
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+            if (userError || !user) {
+              throw new Error('You must be logged in to add patients');
+            }
+
+            // Generate MRN (random 6-digit number)
+            let mrn;
+            let mrnExists = true;
+
+            while (mrnExists) {
+              mrn = Math.floor(100000 + Math.random() * 900000);
+
+              // Check if MRN already exists
+              const { data: existingPatients } = await supabase
+                .from('patients')
+                .select('mrn')
+                .eq('mrn', mrn);
+
+              mrnExists = existingPatients && existingPatients.length > 0;
+            }
+
+            console.log('Generated MRN:', mrn);
+
+            // Insert patient into Supabase
+            const { data, error } = await supabase
+              .from('patients')
+              .insert([
+                {
+                  patient_name: patientName,
+                  date_of_birth: patientDOB,
+                  mrn: mrn,
+                  visit_date: visitDate,
+                  user_id: user.id
+                }
+              ])
+              .select();
+
+            if (error) {
+              throw error;
+            }
+
+            console.log('Patient added successfully:', data);
+
+            // Show success message
+            alert(`Patient added successfully!\nMRN: ${mrn}`);
+
+            // Close modal and reset form
+            closeModal();
+
+            // Reload patients list
+            await loadPatients();
+
+          } catch (error) {
+            console.error('Error adding patient:', error);
+            alert(`Failed to add patient: ${error.message}`);
+          } finally {
+            // Re-enable submit button
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
           }
         });
       }
