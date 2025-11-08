@@ -25,12 +25,12 @@
       <form id="loginForm" class="login-form">
         <!-- Username/Email Field -->
         <div class="form-group">
-          <label for="username">Username or Email</label>
+          <label for="username">Email</label>
           <input
-            type="text"
+            type="email"
             id="username"
             name="username"
-            placeholder="Enter your username or email"
+            placeholder="Enter your email"
             required
             autocomplete="username"
           >
@@ -77,6 +77,11 @@
     </footer>
   </div>
 
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase Configuration -->
+  <script src="js/supabase.js"></script>
+  <!-- Authentication Logic -->
   <script src="js/auth.js"></script>
 </body>
 </html>

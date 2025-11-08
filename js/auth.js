@@ -1,5 +1,53 @@
+// Authentication Logic with Supabase
+// This file handles login, signup, and password reset functionality
+
+// Show loading state
+function showLoading(button) {
+  button.disabled = true;
+  button.dataset.originalText = button.textContent;
+  button.textContent = 'Loading...';
+}
+
+// Hide loading state
+function hideLoading(button) {
+  button.disabled = false;
+  button.textContent = button.dataset.originalText;
+}
+
+// Show error message
+function showError(message) {
+  // You can customize this to show a nicer error UI
+  alert(message);
+}
+
 // Password visibility toggle
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+  console.log('DOM loaded, checking Supabase...');
+
+  // Check if Supabase is loaded
+  if (typeof supabase === 'undefined') {
+    console.error('Supabase client not loaded!');
+    showError('Authentication system not initialized. Please refresh the page.');
+    return;
+  }
+
+  console.log('Supabase loaded successfully');
+
+  // Check if user is already logged in
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    console.log('Session check:', session ? 'User is logged in' : 'No session', error);
+
+    if (session) {
+      // User is already logged in, redirect to patient details
+      console.log('Redirecting to patient-details.html');
+      window.location.href = 'patient-details.html';
+      return;
+    }
+  } catch (err) {
+    console.error('Session check error:', err);
+  }
+
   const togglePasswordButton = document.querySelector('.toggle-password');
   const passwordInput = document.getElementById('password');
   const eyeIcon = document.querySelector('.eye-icon');
@@ -15,34 +63,72 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Form submission handler
+  // Form submission handler with Supabase
   const loginForm = document.getElementById('loginForm');
 
   if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
       e.preventDefault();
+      console.log('Login form submitted');
 
-      const username = document.getElementById('username').value;
+      const email = document.getElementById('username').value;
       const password = document.getElementById('password').value;
+      const loginButton = loginForm.querySelector('.login-button');
+
+      console.log('Login attempt with email:', email);
 
       // Basic validation
-      if (!username || !password) {
-        alert('Please enter both username and password.');
+      if (!email || !password) {
+        showError('Please enter both email and password.');
         return;
       }
 
-      // Here you would typically make an API call to authenticate
-      // For now, we'll just log the attempt and redirect
-      console.log('Login attempt:', { username });
+      // Show loading state
+      showLoading(loginButton);
+      console.log('Calling Supabase signInWithPassword...');
 
-      // Example: Simple validation (replace with actual authentication)
-      if (username && password) {
-        // Store login state (in production, use proper session management)
-        sessionStorage.setItem('isLoggedIn', 'true');
-        sessionStorage.setItem('username', username);
+      try {
+        // Sign in with Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
+
+        console.log('Supabase response:', { data, error });
+
+        if (error) {
+          throw error;
+        }
+
+        // Success! User is authenticated
+        console.log('Login successful! User:', data.user);
+        console.log('Session:', data.session);
+
+        // Small delay to ensure session is saved
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Redirect to patient details page
+        console.log('Redirecting to patient-details.html...');
         window.location.href = 'patient-details.html';
+
+      } catch (error) {
+        console.error('❌ Login error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error code:', error.code);
+        console.error('Full error:', JSON.stringify(error, null, 2));
+
+        hideLoading(loginButton);
+
+        // Show detailed error messages
+        if (error.message.includes('Invalid login credentials')) {
+          showError('❌ Invalid email or password.\n\nPlease check your credentials and try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          showError('❌ Email not confirmed.\n\nPlease check your email and confirm your account before logging in.');
+        } else if (error.message.includes('User not found')) {
+          showError('❌ User not found.\n\nPlease check your email or sign up for a new account.');
+        } else {
+          showError(`❌ Login failed.\n\nError: ${error.message}\n\nPlease try again or contact support.`);
+        }
       }
     });
   }
@@ -51,10 +137,30 @@ document.addEventListener('DOMContentLoaded', function() {
   const forgotPasswordLink = document.querySelector('.forgot-password');
 
   if (forgotPasswordLink) {
-    forgotPasswordLink.addEventListener('click', function(e) {
+    forgotPasswordLink.addEventListener('click', async function(e) {
       e.preventDefault();
-      // In production, this would open a password reset flow
-      alert('Password reset functionality would be implemented here.\n\nPlease contact your system administrator.');
+
+      const email = document.getElementById('username').value;
+
+      if (!email) {
+        showError('Please enter your email address first.');
+        return;
+      }
+
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password.html`,
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        alert('Password reset email sent! Please check your inbox.');
+      } catch (error) {
+        console.error('Password reset error:', error);
+        showError('Failed to send password reset email. Please try again.');
+      }
     });
   }
 
@@ -62,10 +168,40 @@ document.addEventListener('DOMContentLoaded', function() {
   const signupLink = document.querySelector('.signup-link');
 
   if (signupLink) {
-    signupLink.addEventListener('click', function(e) {
+    signupLink.addEventListener('click', async function(e) {
       e.preventDefault();
-      // In production, this would navigate to a registration page
-      alert('New user registration would be implemented here.\n\nPlease contact your system administrator to create an account.');
+
+      const email = prompt('Enter your email address:');
+      const password = prompt('Enter your password (min 6 characters):');
+
+      if (!email || !password) {
+        return;
+      }
+
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters long.');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: email,
+          password: password,
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        alert('Sign up successful! Please check your email to confirm your account.');
+      } catch (error) {
+        console.error('Sign up error:', error);
+        if (error.message.includes('already registered')) {
+          showError('This email is already registered. Please login instead.');
+        } else {
+          showError('Failed to create account. Please try again.');
+        }
+      }
     });
   }
 
