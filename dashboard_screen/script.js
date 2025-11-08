@@ -26,7 +26,27 @@ searchInput.addEventListener('input', function() {
         noResults.style.display = 'none';
     }
 });
-
+// Add click handlers to patient cards
+document.addEventListener('DOMContentLoaded', function() {
+    const patientCards = document.querySelectorAll('.patient-card');
+    
+    patientCards.forEach(card => {
+        card.style.cursor = 'pointer';
+        
+        card.addEventListener('click', function(e) {
+            // Don't navigate if clicking on action buttons
+            if (e.target.closest('.action-btn')) {
+                return;
+            }
+            
+            const patientName = this.dataset.name;
+            const patientMrn = this.dataset.mrn;
+            
+            // Navigate to patient details page with URL parameters
+             window.location.href = `../patient-details.html?name=${encodeURIComponent(patientName)}&mrn=${patientMrn}`;
+        });
+    });
+});
 // Logout button functionality
 const logoutBtn = document.querySelector('.logout-btn');
 logoutBtn.addEventListener('click', function() {

@@ -12,7 +12,32 @@ function addChip(text) {
   const ta = document.getElementById('quick-notes');
   ta.value = (ta.value ? ta.value + '\n' : '') + `• ${text}`;
 }
+// Get patient info from URL parameters
+function getPatientFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+        name: urlParams.get('name'),
+        mrn: urlParams.get('mrn')
+    };
+}
 
+// Update patient display
+function displayPatientInfo() {
+    const patient = getPatientFromURL();
+    
+    if (patient.name && patient.mrn) {
+        // Update patient card in sidebar
+        document.querySelector('.patient-card .name').textContent = patient.name;
+        document.querySelector('.patient-card .mrn').textContent = `MRN: ${patient.mrn}`;
+        
+        // Update avatar initials
+        const initials = patient.name.split(' ').map(n => n[0]).join('');
+        document.querySelector('.patient-card .avatar').textContent = initials;
+    }
+}
+
+// Call on page load
+displayPatientInfo();
 // Fetch dynamic fields from backend
 async function updateDynamic() {
   const chief = document.getElementById('chief').value;
