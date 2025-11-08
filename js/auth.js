@@ -108,27 +108,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Redirect to patient details page
-        console.log('Redirecting to patient-details.html...');
         window.location.href = 'patient-details.html';
-
-      } catch (error) {
-        console.error('❌ Login error:', error);
-        console.error('Error message:', error.message);
-        console.error('Error code:', error.code);
-        console.error('Full error:', JSON.stringify(error, null, 2));
-
-        hideLoading(loginButton);
-
-        // Show detailed error messages
-        if (error.message.includes('Invalid login credentials')) {
-          showError('❌ Invalid email or password.\n\nPlease check your credentials and try again.');
-        } else if (error.message.includes('Email not confirmed')) {
-          showError('❌ Email not confirmed.\n\nPlease check your email and confirm your account before logging in.');
-        } else if (error.message.includes('User not found')) {
-          showError('❌ User not found.\n\nPlease check your email or sign up for a new account.');
-        } else {
-          showError(`❌ Login failed.\n\nError: ${error.message}\n\nPlease try again or contact support.`);
-        }
       }
     });
   }
