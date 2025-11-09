@@ -5,21 +5,16 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    background: linear-gradient(135deg, #001f5c 0%, #003d99 50%, #001f5c 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to bottom right, #1e3a8a, #1e40af, #0f172a);
     min-height: 100vh;
     color: #fff;
 }
 
 /* Header Styles */
 .header {
-    background: rgba(13, 71, 161, 0.85);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    background: #1d4ed8;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .header-container {
@@ -52,14 +47,13 @@ body {
 .avatar-circle {
     width: 2.5rem;
     height: 2.5rem;
-    background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
+    background: linear-gradient(to bottom right, #fb923c, #ec4899);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
     color: white;
-    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
 }
 
 .doctor-details {
@@ -77,21 +71,18 @@ body {
 }
 
 .logout-btn {
-    background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
+    background: #ef4444;
     color: white;
     padding: 0.5rem 1.5rem;
     border: none;
     border-radius: 0.5rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+    transition: background 0.3s;
 }
 
 .logout-btn:hover {
-    background: linear-gradient(135deg, #f4511e 0%, #e64a19 100%);
-    box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
-    transform: translateY(-1px);
+    background: #dc2626;
 }
 
 /* Main Content */
@@ -131,27 +122,21 @@ body {
 .search-input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 3rem;
-    background: rgba(0, 31, 92, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #1e40af;
+    border: 1px solid #2563eb;
     border-radius: 0.5rem;
     color: white;
     font-size: 1rem;
-    transition: all 0.2s;
-    outline: none;
 }
 
 .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: #93c5fd;
 }
 
 .search-input:focus {
-    background: rgba(0, 31, 92, 0.7);
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-}
-
-.search-input:hover {
-    border-color: rgba(255, 255, 255, 0.3);
+    outline: none;
+    ring: 2px;
+    ring-color: #3b82f6;
 }
 
 /* Patient List */
@@ -163,21 +148,18 @@ body {
 
 /* Patient Card */
 .patient-card {
-    background: rgba(13, 71, 161, 0.85);
-    backdrop-filter: blur(10px);
+    background: linear-gradient(to right, #1e40af, #1d4ed8);
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     padding: 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.3s;
-    cursor: pointer;
+    transition: box-shadow 0.3s;
 }
 
 .patient-card:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-    transform: translateY(-2px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
 }
 
 .patient-left {
@@ -286,26 +268,7 @@ body {
 .action-btn svg {
     color: white;
 }
-.delete-btn {
-    width: 2.5rem;
-    height: 2.5rem;
-    background: #2563eb;
-    border: none;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.3s;
-}
 
-.delete-btn:hover {
-    background: #3b82f6;
-}
-
-.delete-btn svg {
-    color: white;
-}
 /* No Results */
 .no-results {
     text-align: center;
@@ -316,220 +279,7 @@ body {
     font-size: 1.125rem;
     color: #93c5fd;
 }
-/* Add Patient Button Styles */
-.add-patient-center-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem 0;
-}
 
-.add-patient-bottom-container {
-  padding: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-.add-patient-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
-  font-family: inherit;
-}
-
-.add-patient-btn:hover {
-  background: linear-gradient(135deg, #f4511e 0%, #e64a19 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
-}
-
-.add-patient-btn svg {
-  flex-shrink: 0;
-}
-/* Modal Overlay - Dark background that covers the screen */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-/* Modal Content - The popup box */
-.modal-content {
-  background: rgba(13, 71, 161, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-/* Modal Header */
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.modal-header h2 {
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
-  margin: 0;
-}
-
-/* Close Button */
-.modal-close {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
-}
-
-.modal-close:hover {
-  color: #ff5722;
-}
-
-/* Modal Form */
-.modal-form {
-  padding: 20px;
-}
-
-/* Form Group */
-.form-group-modal {
-  margin-bottom: 16px;
-}
-
-.form-group-modal label {
-  display: block;
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-
-.form-group-modal input {
-  width: 100%;
-  background: rgba(0, 31, 92, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-family: inherit;
-  transition: all 0.2s ease;
-}
-
-.form-group-modal input:focus {
-  background: rgba(0, 31, 92, 0.7);
-  border-color: rgba(255, 255, 255, 0.4);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-  outline: none;
-}
-
-.form-group-modal input:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.form-group-modal input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
-}
-
-/* Info Box */
-.form-info {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 12px;
-  background: rgba(20, 184, 166, 0.1);
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.form-info svg {
-  color: #5EEAD4;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.form-info span {
-  color: #94A3B8;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-/* Modal Actions */
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  margin-top: 24px;
-}
-
-/* Buttons */
-.btn-primary {
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  font-family: inherit;
-  background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
-  color: #fff;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, #f4511e 0%, #e64a19 100%);
-  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  padding: 10px 20px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  font-family: inherit;
-  background: transparent;
-  color: white;
-  transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.1);
-}
 /* Responsive Design */
 @media (max-width: 768px) {
     .content-header {
