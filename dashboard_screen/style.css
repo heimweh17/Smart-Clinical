@@ -279,7 +279,220 @@ body {
     font-size: 1.125rem;
     color: #93c5fd;
 }
+/* Add Patient Button Styles */
+.add-patient-center-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0;
+}
 
+.add-patient-bottom-container {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.add-patient-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+  font-family: inherit;
+}
+
+.add-patient-btn:hover {
+  background: linear-gradient(135deg, #f4511e 0%, #e64a19 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
+}
+
+.add-patient-btn svg {
+  flex-shrink: 0;
+}
+/* Modal Overlay - Dark background that covers the screen */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal Content - The popup box */
+.modal-content {
+  background: rgba(13, 71, 161, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+/* Close Button */
+.modal-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #ff5722;
+}
+
+/* Modal Form */
+.modal-form {
+  padding: 20px;
+}
+
+/* Form Group */
+.form-group-modal {
+  margin-bottom: 16px;
+}
+
+.form-group-modal label {
+  display: block;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.form-group-modal input {
+  width: 100%;
+  background: rgba(0, 31, 92, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.form-group-modal input:focus {
+  background: rgba(0, 31, 92, 0.7);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.form-group-modal input:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.form-group-modal input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Info Box */
+.form-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(20, 184, 166, 0.1);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.form-info svg {
+  color: #5EEAD4;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.form-info span {
+  color: #94A3B8;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+/* Buttons */
+.btn-primary {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: inherit;
+  background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
+  color: #fff;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #f4511e 0%, #e64a19 100%);
+  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: inherit;
+  background: transparent;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+}
 /* Responsive Design */
 @media (max-width: 768px) {
     .content-header {
