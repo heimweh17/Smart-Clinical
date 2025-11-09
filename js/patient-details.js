@@ -374,3 +374,238 @@ window.addEventListener('beforeunload', (e) => {
     e.returnValue = 'Recording in progress. Are you sure you want to leave?';
   }
 });
+
+// ==========================================
+// AI MEDICAL SUMMARY INTEGRATION
+// ==========================================
+
+let aiSummary = null;
+
+// Initialize AI summary system
+function initializeAISummary() {
+  // Check if AI summary elements exist
+  const generateBtn = document.getElementById('generate-summary-btn');
+  
+  if (!generateBtn) {
+    console.warn('AI summary buttons not found - skipping AI setup');
+    return;
+  }
+
+  // Check if AIMedicalSummary class exists
+  if (typeof AIMedicalSummary === 'undefined') {
+    console.error('AIMedicalSummary class not loaded');
+    return;
+  }
+
+  // Create AI summary instance
+  aiSummary = new AIMedicalSummary();
+  console.log('✅ AI Medical Summary system initialized');
+
+  // Generate Summary Button
+  generateBtn.addEventListener('click', async () => {
+    await generateMedicalSummary();
+  });
+
+  // Copy Summary Button
+  const copyBtn = document.getElementById('copy-summary-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      copySummaryToClipboard();
+    });
+  }
+
+  // Export Summary Button
+  const exportBtn = document.getElementById('export-summary-btn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      exportSummaryToPDF();
+    });
+  }
+
+  // Save Summary Button
+  const saveBtn = document.getElementById('save-summary-btn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', async () => {
+      await saveSummaryToChart();
+    });
+  }
+}
+
+// Generate medical summary
+async function generateMedicalSummary() {
+  if (!transcription) {
+    showNotification('❌ No transcription available', 'error');
+    return;
+  }
+
+  const transcript = transcription.getTranscript();
+
+  if (transcript.length === 0) {
+    showNotification('❌ Transcript is empty. Record a conversation first.', 'error');
+    return;
+  }
+
+  // Get patient info
+  const patientInfo = getPatientFromURL();
+
+  // Show loading
+  document.getElementById('generate-summary-btn').disabled = true;
+  document.getElementById('summary-loading').style.display = 'block';
+  document.getElementById('summary-container').style.display = 'none';
+  document.getElementById('ai-status').textContent = 'Generating...';
+
+  try {
+    console.log('🤖 Generating medical summary...');
+
+    // Generate SOAP note
+    const soapNote = await aiSummary.generateSummary(transcript, patientInfo);
+
+    // Generate quick summary
+    const quickSummary = await aiSummary.generateQuickSummary(transcript);
+
+    // Display results
+    displaySummary(soapNote, quickSummary);
+
+    showNotification('✅ Summary generated successfully', 'success');
+    document.getElementById('ai-status').textContent = 'Ready';
+
+  } catch (error) {
+    console.error('❌ Error generating summary:', error);
+    showNotification('❌ Failed to generate summary: ' + error.message, 'error');
+    document.getElementById('ai-status').textContent = 'Error';
+  } finally {
+    document.getElementById('generate-summary-btn').disabled = false;
+    document.getElementById('summary-loading').style.display = 'none';
+  }
+}
+
+// Display summary
+function displaySummary(soapNote, quickSummary) {
+  // Show container
+  document.getElementById('summary-container').style.display = 'block';
+
+  // Display quick summary
+  document.getElementById('quick-summary').textContent = quickSummary;
+
+  // Display SOAP sections
+  document.getElementById('soap-subjective').textContent = soapNote.subjective || 'Not documented';
+  document.getElementById('soap-objective').textContent = soapNote.objective || 'Not documented';
+  document.getElementById('soap-assessment').textContent = soapNote.assessment || 'Not documented';
+  document.getElementById('soap-plan').textContent = soapNote.plan || 'Not documented';
+
+  // Show action buttons
+  document.getElementById('copy-summary-btn').style.display = 'inline-block';
+  document.getElementById('export-summary-btn').style.display = 'inline-block';
+  document.getElementById('save-summary-btn').style.display = 'inline-block';
+}
+
+// Copy summary to clipboard
+function copySummaryToClipboard() {
+  const subjective = document.getElementById('soap-subjective').textContent;
+  const objective = document.getElementById('soap-objective').textContent;
+  const assessment = document.getElementById('soap-assessment').textContent;
+  const plan = document.getElementById('soap-plan').textContent;
+
+  const fullText = `SUBJECTIVE:\n${subjective}\n\nOBJECTIVE:\n${objective}\n\nASSESSMENT:\n${assessment}\n\nPLAN:\n${plan}`;
+
+  navigator.clipboard.writeText(fullText).then(() => {
+    showNotification('📋 Summary copied to clipboard', 'success');
+  }).catch(err => {
+    showNotification('❌ Failed to copy', 'error');
+  });
+}
+
+// Export summary to file
+function exportSummaryToPDF() {
+  const patient = getPatientFromURL();
+  const subjective = document.getElementById('soap-subjective').textContent;
+  const objective = document.getElementById('soap-objective').textContent;
+  const assessment = document.getElementById('soap-assessment').textContent;
+  const plan = document.getElementById('soap-plan').textContent;
+
+  const content = `
+UF Health SmartScribe - Medical Summary
+========================================
+
+Patient: ${patient.name || 'Unknown'}
+MRN: ${patient.mrn || 'Unknown'}
+Date: ${new Date().toLocaleDateString()}
+Time: ${new Date().toLocaleTimeString()}
+
+SOAP NOTE
+---------
+
+SUBJECTIVE:
+${subjective}
+
+OBJECTIVE:
+${objective}
+
+ASSESSMENT:
+${assessment}
+
+PLAN:
+${plan}
+
+========================================
+Generated by UF Health SmartScribe AI
+`;
+
+  const blob = new Blob([content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `medical-summary-${patient.mrn || 'unknown'}-${Date.now()}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  
+  URL.revokeObjectURL(url);
+  showNotification('📄 Summary exported', 'success');
+}
+
+// Save summary to backend
+async function saveSummaryToChart() {
+  const patient = getPatientFromURL();
+  const subjective = document.getElementById('soap-subjective').textContent;
+  const objective = document.getElementById('soap-objective').textContent;
+  const assessment = document.getElementById('soap-assessment').textContent;
+  const plan = document.getElementById('soap-plan').textContent;
+
+  try {
+    const response = await fetch(`${API_BASE}/soap-notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        patient_mrn: patient.mrn,
+        patient_name: patient.name,
+        soap_note: {
+          subjective,
+          objective,
+          assessment,
+          plan
+        },
+        created_at: new Date().toISOString()
+      })
+    });
+
+    if (response.ok) {
+      showNotification('💾 Summary saved to chart', 'success');
+    } else {
+      showNotification('❌ Failed to save summary', 'error');
+    }
+  } catch (error) {
+    console.error('Error saving summary:', error);
+    showNotification('❌ Error saving summary', 'error');
+  }
+}
+
+// Update the DOMContentLoaded event
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🚀 Initializing patient details page...');
+  
+  displayPatientInfo();
+  initializeTranscription();
+  initializeAISummary(); // Add this line
+});

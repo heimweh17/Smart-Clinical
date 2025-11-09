@@ -184,28 +184,85 @@
         </div>
       </main>
 
-      <!-- Right Sidebar: Patient Info or Additional Features -->
-      <aside class="chat-panel" style="border: 2px solid #1E3B70; border-radius: 12px; background: var(--card);">
-        <div class="chat-header">
-          <h3>Session Info</h3>
+      <!-- Right Sidebar: AI Medical Summary -->
+<aside class="chat-panel" style="border: 2px solid #1E3B70; border-radius: 12px; background: var(--card);">
+  <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border);">
+    <h3 style="margin: 0;">AI Medical Summary</h3>
+    <span id="ai-status" style="font-size: 0.85em; color: var(--text-secondary);"></span>
+  </div>
+  
+  <div style="padding: 20px;">
+    <!-- Generate Summary Button -->
+    <button id="generate-summary-btn" class="btn accent" style="width: 100%; margin-bottom: 20px;">
+      🤖 Generate SOAP Note
+    </button>
+
+    <!-- Loading Indicator -->
+    <div id="summary-loading" style="display: none; text-align: center; padding: 20px;">
+      <div style="border: 4px solid var(--border); border-top: 4px solid var(--uf-blue); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+      <p style="margin-top: 10px; color: var(--text-secondary);">Generating summary...</p>
+    </div>
+
+    <!-- Summary Display -->
+    <div id="summary-container" style="display: none;">
+      <!-- Quick Summary -->
+      <div style="background: rgba(0, 33, 165, 0.1); border-left: 3px solid var(--uf-blue); padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 8px 0; color: var(--uf-blue); font-size: 0.9em;">Quick Summary</h4>
+        <p id="quick-summary" style="margin: 0; font-size: 0.9em; line-height: 1.5;"></p>
+      </div>
+
+      <!-- SOAP Note Sections -->
+      <div style="max-height: 500px; overflow-y: auto;">
+        <!-- Subjective -->
+        <div class="soap-section" style="margin-bottom: 20px;">
+          <h4 style="color: var(--uf-blue); margin: 0 0 8px 0; font-size: 0.95em;">SUBJECTIVE</h4>
+          <div id="soap-subjective" style="background: var(--bg); padding: 12px; border-radius: 8px; font-size: 0.9em; line-height: 1.6; white-space: pre-wrap;">
+            Click "Generate SOAP Note" to create summary
+          </div>
         </div>
-        
-        <div style="padding: 20px;">
-          <p style="color: var(--text-secondary);">
-            Recording session for <strong>Annalise Keating</strong>
-          </p>
-          <p style="color: var(--text-secondary); margin-top: 10px;">
-            MRN: 987654321
-          </p>
+
+        <!-- Objective -->
+        <div class="soap-section" style="margin-bottom: 20px;">
+          <h4 style="color: var(--uf-blue); margin: 0 0 8px 0; font-size: 0.95em;">OBJECTIVE</h4>
+          <div id="soap-objective" style="background: var(--bg); padding: 12px; border-radius: 8px; font-size: 0.9em; line-height: 1.6; white-space: pre-wrap;"></div>
         </div>
-        
-        <!-- Bottom Action Bar -->
-        <div class="chat-actions">
-          <button class="action-btn secondary-action">Save Draft</button>
-          <button class="action-btn secondary-action">Export</button>
-          <button class="action-btn primary-action">Complete & Sign</button>
+
+        <!-- Assessment -->
+        <div class="soap-section" style="margin-bottom: 20px;">
+          <h4 style="color: var(--uf-blue); margin: 0 0 8px 0; font-size: 0.95em;">ASSESSMENT</h4>
+          <div id="soap-assessment" style="background: var(--bg); padding: 12px; border-radius: 8px; font-size: 0.9em; line-height: 1.6; white-space: pre-wrap;"></div>
         </div>
-      </aside>
+
+        <!-- Plan -->
+        <div class="soap-section" style="margin-bottom: 20px;">
+          <h4 style="color: var(--uf-blue); margin: 0 0 8px 0; font-size: 0.95em;">PLAN</h4>
+          <div id="soap-plan" style="background: var(--bg); padding: 12px; border-radius: 8px; font-size: 0.9em; line-height: 1.6; white-space: pre-wrap;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bottom Action Bar -->
+  <div class="chat-actions" style="padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px;">
+    <button id="copy-summary-btn" class="action-btn secondary-action" style="display: none;">
+      📋 Copy
+    </button>
+    <button id="export-summary-btn" class="action-btn secondary-action" style="display: none;">
+      📄 Export
+    </button>
+    <button id="save-summary-btn" class="action-btn primary-action" style="display: none;">
+      💾 Save to Chart
+    </button>
+  </div>
+</aside>
+
+<!-- Add CSS for loading spinner -->
+<style>
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
     </div>
   </div>
 
@@ -240,5 +297,39 @@
   
   <!-- Patient Details Logic -->
   <script src="js/patient-details.js"></script>
+  <!-- Supabase JS Client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Supabase Configuration -->
+<script src="js/supabase.js"></script>
+
+<!-- Page Protection Script -->
+<script>
+  (async function() {
+    await protectPage();
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async function() {
+        const success = await signOut();
+        if (success) {
+          window.location.href = 'index.html';
+        }
+      });
+    }
+  })();
+</script>
+
+<!-- Gemini AI Configuration -->
+<script src="js/gemini-config.js"></script>
+
+<!-- AI Summary System -->
+<script src="js/ai-summary.js"></script>
+
+<!-- Deepgram Transcription -->
+<script src="js/deepgram-config.js"></script>
+<script src="js/medical-transcription.js"></script>
+
+<!-- Patient Details Logic -->
+<script src="js/patient-details.js"></script>
 </body>
 </html>
