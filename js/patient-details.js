@@ -191,9 +191,9 @@ function initializeTranscription() {
 
   // Clear Transcript Button
   clearBtn.addEventListener('click', () => {
-    if (confirm('Are you sure you want to clear the transcript?')) {
+    
       clearTranscript();
-    }
+    
   });
 
   // Export Transcript Button
