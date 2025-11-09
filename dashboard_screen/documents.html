@@ -25,18 +25,22 @@
         }
         
         .document-card {
-            background: white;
+            background: rgba(59, 130, 246, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-            border-left: 4px solid #0021A5;
+            border-left: 4px solid #ff5722;
             position: relative;
         }
         
         .document-card:hover {
-            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(59, 130, 246, 0.5);
         }
         
         .document-card-content {
@@ -51,9 +55,9 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(220, 38, 38, 0.1);
-            border: 1px solid rgba(220, 38, 38, 0.3);
-            color: #dc2626;
+            background: rgba(220, 38, 38, 0.2);
+            border: 1px solid rgba(220, 38, 38, 0.4);
+            color: #ff6b6b;
             padding: 8px;
             border-radius: 6px;
             cursor: pointer;
@@ -64,7 +68,7 @@
         }
         
         .delete-consultation-btn:hover {
-            background: rgba(220, 38, 38, 0.2);
+            background: rgba(220, 38, 38, 0.3);
             transform: scale(1.1);
         }
         
@@ -74,18 +78,18 @@
             align-items: center;
             margin-bottom: 16px;
             padding-bottom: 12px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
             padding-right: 40px;
         }
         
         .document-date {
             font-size: 1.2em;
             font-weight: 600;
-            color: #0021A5;
+            color: white;
         }
         
         .document-time {
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
             font-size: 0.95em;
         }
         
@@ -95,13 +99,13 @@
         
         .section-title {
             font-weight: 600;
-            color: #0021A5;
+            color: #ff5722;
             margin-bottom: 8px;
             font-size: 0.95em;
         }
         
         .section-content {
-            color: #333;
+            color: rgba(255, 255, 255, 0.9);
             line-height: 1.6;
             font-size: 0.95em;
         }
@@ -114,8 +118,9 @@
         }
         
         .tag {
-            background: #E8F0FF;
-            color: #0021A5;
+            background: rgba(0, 31, 92, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
             padding: 6px 14px;
             border-radius: 16px;
             font-size: 0.85em;
@@ -130,7 +135,8 @@
         }
         
         .vital-item {
-            background: #f5f5f5;
+            background: rgba(0, 31, 92, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 8px 12px;
             border-radius: 6px;
             text-align: center;
@@ -138,13 +144,13 @@
         
         .vital-label {
             font-size: 0.8em;
-            color: #666;
+            color: rgba(255, 255, 255, 0.7);
             margin-bottom: 4px;
         }
         
         .vital-value {
             font-weight: 600;
-            color: #333;
+            color: white;
         }
 
         /* Confirmation Dialog Styles */
@@ -240,7 +246,7 @@
 
         <!-- Patient Name in Center -->
         <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; pointer-events: none;">
-            <div class="title" id="patientNameTitle" style="font-size: 1.1em; white-space: nowrap; color: white;">—</div>
+            <div class="title" id="patientNameTitle" style="font-size: 1.1em; white-space: nowrap; color: orangered">—</div>
         </div>
         
         <div class="right" style="display: flex; align-items: center; gap: 1rem; flex-shrink: 0;">
@@ -251,7 +257,7 @@
 
     <main class="main-content">
         <div id="documentsList" style="max-width: 1200px; margin: 0 auto;">
-            <div style="text-align: center; padding: 40px; color: #666;">
+            <div style="text-align: center; padding: 40px; color: rgba(255, 255, 255, 0.7);">
                 Loading documents...
             </div>
         </div>
@@ -369,22 +375,22 @@
 
                 if (!consultations || consultations.length === 0) {
                     container.innerHTML = `
-                        <div style="text-align: center; padding: 60px; color: #666;">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" style="margin-bottom: 20px;">
+                        <div style="text-align: center; padding: 60px; color: rgba(255, 255, 255, 0.7);">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(255, 255, 255, 0.5)" stroke-width="2" style="margin-bottom: 20px;">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
-                            <p style="font-size: 1.1em; margin-bottom: 8px;">No consultations found</p>
-                            <p style="font-size: 0.9em; color: #999;">Start a consultation to create documents.</p>
+                            <p style="font-size: 1.1em; margin-bottom: 8px; color: white;">No consultations found</p>
+                            <p style="font-size: 0.9em; color: rgba(255, 255, 255, 0.7);">Start a consultation to create documents.</p>
                         </div>
                     `;
                     return;
                 }
 
                 const header = document.createElement('div');
-                header.style.cssText = 'margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #eee;';
+                header.style.cssText = 'margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid rgba(255, 255, 255, 0.3);';
                 header.innerHTML = `
-                    <h2 style="margin: 0; color: #333; font-size: 1.3em;">
+                    <h2 style="margin: 0; color: white; font-size: 1.3em;">
                         ${consultations.length} Consultation${consultations.length !== 1 ? 's' : ''}
                     </h2>
                 `;
@@ -397,7 +403,7 @@
 
             } catch (error) {
                 console.error('Error loading documents:', error);
-                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #d32f2f;">Error loading documents.</div>';
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #ff6b6b;">Error loading documents.</div>';
             }
         }
         
@@ -486,7 +492,7 @@
                     <div class="document-header">
                         <div>
                             <div class="document-date">${dateStr}</div>
-                            <div style="color: #FA4616; font-weight: 500; margin-top: 4px;">${chiefComplaint}</div>
+                            <div style="color: #ff5722; font-weight: 500; margin-top: 4px;">${chiefComplaint}</div>
                         </div>
                         <div class="document-time">${timeStr}</div>
                     </div>

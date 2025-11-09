@@ -15,7 +15,8 @@
 
     .view-header {
       background: var(--card);
-      border: 2px solid #1E3B70;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 24px;
@@ -23,7 +24,8 @@
 
     .view-section {
       background: var(--card);
-      border: 2px solid #1E3B70;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 12px;
       padding: 24px;
       margin-bottom: 20px;
@@ -49,6 +51,79 @@
       line-height: 1.6;
       white-space: pre-wrap;
       color: var(--text);
+    }
+
+    .section-header-collapsible {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .section-header-collapsible::after {
+      content: '▼';
+      font-size: 0.9em;
+      transition: transform 0.3s ease;
+      color: var(--teal);
+    }
+
+    .view-section.collapsed .section-header-collapsible::after {
+      transform: rotate(-90deg);
+    }
+
+    .section-content-collapsible {
+      transition: max-height 0.3s ease, opacity 0.3s ease;
+      overflow: hidden;
+      max-height: 5000px;
+      opacity: 1;
+    }
+
+    .view-section.collapsed .section-content-collapsible {
+      max-height: 0;
+      opacity: 0;
+      margin-bottom: 0;
+    }
+
+    .demographics-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    .demographics-table th,
+    .demographics-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .demographics-table th {
+      background: rgba(0, 31, 92, 0.3);
+      color: var(--teal);
+      font-weight: 600;
+      font-size: 0.9em;
+      width: 40%;
+    }
+
+    .demographics-table td {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.95em;
+    }
+
+    .demographics-table tr:last-child th,
+    .demographics-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .demographics-table tr:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .demographics-empty {
+      color: rgba(255, 255, 255, 0.5);
+      font-style: italic;
     }
 
     .rec-grid {
@@ -112,7 +187,7 @@
 
       <div class="brand" style="margin-left: 140px;">
         <div class="logo">UF</div>
-        <div class="title">Health SmartScribe</div>
+        <div class="title"></div>
       </div>
       
       <div class="right">
@@ -158,82 +233,172 @@
       </div>
 
       <!-- SOAP Note -->
-      <div class="view-section">
-        <h3 style="margin: 0 0 20px 0; color: var(--uf-blue); font-size: 1.3em;">SOAP Note</h3>
+      <div class="view-section collapsed">
+        <h3 class="section-header-collapsible" onclick="toggleSection('soap-note-section')" style="margin: 0 0 20px 0; color: var(--uf-orange); font-size: 1.3em;">SOAP Note</h3>
         
-        <div class="soap-section">
-          <div class="soap-title">SUBJECTIVE</div>
-          <div class="soap-content" id="view-subjective">—</div>
-        </div>
+        <div class="section-content-collapsible" id="soap-note-section">
+          <div class="soap-section">
+            <div class="soap-title">SUBJECTIVE</div>
+            <div class="soap-content" id="view-subjective">—</div>
+          </div>
 
-        <div class="soap-section">
-          <div class="soap-title">OBJECTIVE</div>
-          <div class="soap-content" id="view-objective">—</div>
-        </div>
+          <div class="soap-section">
+            <div class="soap-title">OBJECTIVE</div>
+            <div class="soap-content" id="view-objective">—</div>
+          </div>
 
-        <div class="soap-section">
-          <div class="soap-title">ASSESSMENT</div>
-          <div class="soap-content" id="view-assessment">—</div>
-        </div>
+          <div class="soap-section">
+            <div class="soap-title">ASSESSMENT</div>
+            <div class="soap-content" id="view-assessment">—</div>
+          </div>
 
-        <div class="soap-section">
-          <div class="soap-title">PLAN</div>
-          <div class="soap-content" id="view-plan">—</div>
+          <div class="soap-section">
+            <div class="soap-title">PLAN</div>
+            <div class="soap-content" id="view-plan">—</div>
+          </div>
         </div>
       </div>
 
       <!-- AI Recommendations -->
-      <div class="view-section" id="recommendations-section">
-        <h3 style="margin: 0 0 16px 0; color: var(--teal); font-size: 1.3em;">💡 AI Recommendations</h3>
+      <div class="view-section collapsed" id="recommendations-section">
+        <h3 class="section-header-collapsible" onclick="toggleSection('recommendations-content')" style="margin: 0 0 16px 0; color: var(--teal); font-size: 1.3em;">💡 AI Recommendations</h3>
 
-        <div class="rec-grid">
-          <div class="rec-item">
-            <div class="rec-title">💊 Medications</div>
-            <div class="rec-content" id="view-rec-meds">—</div>
-          </div>
+        <div class="section-content-collapsible" id="recommendations-content">
+          <div class="rec-grid">
+            <div class="rec-item">
+              <div class="rec-title">💊 Medications</div>
+              <div class="rec-content" id="view-rec-meds">—</div>
+            </div>
 
-          <div class="rec-item">
-            <div class="rec-title">🏃 Lifestyle</div>
-            <div class="rec-content" id="view-rec-lifestyle">—</div>
-          </div>
+            <div class="rec-item">
+              <div class="rec-title">🏃 Lifestyle</div>
+              <div class="rec-content" id="view-rec-lifestyle">—</div>
+            </div>
 
-          <div class="rec-item">
-            <div class="rec-title">📅 Follow-up</div>
-            <div class="rec-content" id="view-rec-followup">—</div>
-          </div>
+            <div class="rec-item">
+              <div class="rec-title">📅 Follow-up</div>
+              <div class="rec-content" id="view-rec-followup">—</div>
+            </div>
 
-          <div class="rec-item">
-            <div class="rec-title">📚 Education</div>
-            <div class="rec-content" id="view-rec-education">—</div>
-          </div>
+            <div class="rec-item">
+              <div class="rec-title">📚 Education</div>
+              <div class="rec-content" id="view-rec-education">—</div>
+            </div>
 
-          <div class="rec-item">
-            <div class="rec-title">🔬 Tests</div>
-            <div class="rec-content" id="view-rec-tests">—</div>
-          </div>
+            <div class="rec-item">
+              <div class="rec-title">🔬 Tests</div>
+              <div class="rec-content" id="view-rec-tests">—</div>
+            </div>
 
-          <div class="rec-item">
-            <div class="rec-title">🏥 Referrals</div>
-            <div class="rec-content" id="view-rec-referrals">—</div>
+            <div class="rec-item">
+              <div class="rec-title">🏥 Referrals</div>
+              <div class="rec-content" id="view-rec-referrals">—</div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Transcript -->
-      <div class="view-section" id="transcript-section" style="display: none;">
-        <h3 style="margin: 0 0 16px 0; color: var(--teal); font-size: 1.3em;">🎙️ Conversation Transcript</h3>
-        <div id="transcript-container" style="
-          background: var(--bg);
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          padding: 16px;
-          max-height: 500px;
-          overflow-y: auto;
-        ">
-          <!-- Transcript will be loaded here -->
+      <div class="view-section collapsed" id="transcript-section" style="display: none;">
+        <h3 class="section-header-collapsible" onclick="toggleSection('transcript-content')" style="margin: 0 0 16px 0; color: var(--teal); font-size: 1.3em;">🎙️ Conversation Transcript</h3>
+        <div class="section-content-collapsible" id="transcript-content">
+          <div id="transcript-container" style="
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 500px;
+            overflow-y: auto;
+          ">
+            <!-- Transcript will be loaded here -->
+          </div>
+          <div style="margin-top: 12px; font-size: 0.9em; color: var(--text-secondary);">
+            <span id="transcript-duration"></span>
+          </div>
         </div>
-        <div style="margin-top: 12px; font-size: 0.9em; color: var(--text-secondary);">
-          <span id="transcript-duration"></span>
+      </div>
+
+      <!-- Patient Demographics Table -->
+      <div class="view-section collapsed" id="demographics-section" style="display: none;">
+        <h3 class="section-header-collapsible" onclick="toggleSection('demographics-content')" style="margin: 0 0 20px 0; color: var(--teal); font-size: 1.3em;">📋 Patient Demographics</h3>
+
+        <div class="section-content-collapsible" id="demographics-content">
+          <table class="demographics-table" id="demographics-table">
+            <tbody>
+              <tr>
+                <th>Name</th>
+                <td id="demo-name" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>MRN</th>
+                <td id="demo-mrn" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Date of Birth</th>
+                <td id="demo-dob" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Age</th>
+                <td id="demo-age" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Gender</th>
+                <td id="demo-gender" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Race</th>
+                <td id="demo-race" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Ethnicity</th>
+                <td id="demo-ethnicity" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Phone</th>
+                <td id="demo-phone" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Email</th>
+                <td id="demo-email" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Address</th>
+                <td id="demo-address" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>City</th>
+                <td id="demo-city" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>State</th>
+                <td id="demo-state" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>ZIP Code</th>
+                <td id="demo-zip" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Emergency Contact</th>
+                <td id="demo-emergency-contact" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Emergency Contact Phone</th>
+                <td id="demo-emergency-phone" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Insurance Provider</th>
+                <td id="demo-insurance" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Insurance Number</th>
+                <td id="demo-insurance-number" class="demographics-empty">—</td>
+              </tr>
+              <tr>
+                <th>Primary Care Physician</th>
+                <td id="demo-pcp" class="demographics-empty">—</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -245,25 +410,27 @@
             Save Notes
           </button>
         </div>
-        <textarea
-          id="quickNotesInput"
-          placeholder="Add any additional notes or reminders here..."
-          style="
-            width: 100%;
-            min-height: 150px;
-            padding: 16px;
-            border: 2px solid #1E3B70;
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-            font-family: inherit;
-            font-size: 1em;
-            line-height: 1.6;
-            resize: vertical;
-            box-sizing: border-box;
-          "
-        ></textarea>
-        <div id="notesSaveStatus" style="margin-top: 8px; font-size: 0.9em; color: var(--text-secondary);"></div>
+        <div>
+          <textarea
+            id="quickNotesInput"
+            placeholder="Add any additional notes or reminders here..."
+            style="
+              width: 100%;
+              min-height: 150px;
+              padding: 16px;
+              border: 1px solid rgba(255, 255, 255, 0.3);
+              border-radius: 8px;
+              background: var(--bg);
+              color: var(--text);
+              font-family: inherit;
+              font-size: 1em;
+              line-height: 1.6;
+              resize: vertical;
+              box-sizing: border-box;
+            "
+          ></textarea>
+          <div id="notesSaveStatus" style="margin-top: 8px; font-size: 0.9em; color: var(--text-secondary);"></div>
+        </div>
       </div>
 
     </div>
@@ -348,11 +515,107 @@
         if (error) throw error;
 
         console.log('Loaded consultation:', consultation);
+        
+        // Load patient demographics
+        await loadPatientDemographics(consultation.patient_mrn);
+        
         populateView(consultation);
 
       } catch (error) {
         console.error('Error loading consultation:', error);
         alert('Error loading consultation: ' + error.message);
+      }
+    }
+
+    // Load patient demographics from patients table
+    async function loadPatientDemographics(patientMRN) {
+      try {
+        const { data: patient, error } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('mrn', patientMRN)
+          .maybeSingle();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading patient demographics:', error);
+          return;
+        }
+
+        if (patient) {
+          populateDemographicsTable(patient);
+        } else {
+          console.log('No patient record found for MRN:', patientMRN);
+        }
+      } catch (error) {
+        console.error('Error loading demographics:', error);
+      }
+    }
+
+    // Populate demographics table
+    function populateDemographicsTable(patient) {
+      // Helper function to format value or show empty
+      const formatValue = (value) => {
+        if (!value || value === '1900-01-01' || value === '' || value === null) {
+          return '—';
+        }
+        return value;
+      };
+
+      // Helper function to format date
+      const formatDate = (dateString) => {
+        if (!dateString || dateString === '1900-01-01' || dateString === null) {
+          return '—';
+        }
+        try {
+          const date = new Date(dateString);
+          return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          });
+        } catch (e) {
+          return dateString;
+        }
+      };
+
+      // Helper function to calculate age from date of birth
+      const calculateAge = (dob) => {
+        if (!dob || dob === '1900-01-01' || dob === null) {
+          return '—';
+        }
+        try {
+          const birthDate = new Date(dob);
+          const today = new Date();
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          return age.toString();
+        } catch (e) {
+          return '—';
+        }
+      };
+
+      // Populate table fields
+      document.getElementById('demo-name').textContent = formatValue(patient.patient_name);
+      document.getElementById('demo-mrn').textContent = formatValue(patient.mrn);
+      document.getElementById('demo-dob').textContent = formatDate(patient.date_of_birth);
+      document.getElementById('demo-age').textContent = calculateAge(patient.date_of_birth);
+
+      // Remove empty class if value exists
+      const fields = ['demo-name', 'demo-mrn', 'demo-dob', 'demo-age'];
+      fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field.textContent !== '—') {
+          field.classList.remove('demographics-empty');
+        }
+      });
+
+      // Show demographics section if at least one field has data
+      const hasData = patient.patient_name || patient.mrn || patient.date_of_birth;
+      if (hasData) {
+        document.getElementById('demographics-section').style.display = 'block';
       }
     }
 
@@ -544,6 +807,15 @@ Generated by UF Health SmartScribe
         window.location.href = 'index.html';
       }
     });
+
+    // Toggle section collapse
+    function toggleSection(sectionId) {
+      const content = document.getElementById(sectionId);
+      const section = content.closest('.view-section');
+      if (section) {
+        section.classList.toggle('collapsed');
+      }
+    }
 
     // Load on page load
     (async () => {

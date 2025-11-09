@@ -102,7 +102,7 @@
 
       <!-- Center Panel: Live Transcription -->
       <main class="main-recording">
-        <div class="recording-wrapper" style="border: 2px solid #1E3B70; border-radius: 12px; padding: 24px; background: var(--card);">
+        <div class="recording-wrapper" style="border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(10px); border-radius: 12px; padding: 24px; background: var(--card);">
           
           <!-- Transcription Header -->
           <h3>Live Transcription 
@@ -150,8 +150,9 @@
             border-top: 1px solid var(--border);
           "></div>
         </div>
+
         <!-- Quick Notes -->
-        <div class="notes" style="margin-top: 20px; "> 
+        <div class="notes" style="margin-top: 20px;">
           <div class="notes-title">Quick Notes</div>
           <textarea id="quick-notes" placeholder="Add quick notes or reminders..."></textarea>
           <div class="chips">
@@ -162,10 +163,10 @@
         </div>
       </main>
       </aside>
-      
+
 
       <!-- Right Sidebar: AI Medical Summary - OPTIMIZED -->
-      <aside class="chat-panel" style="border: 2px solid #1E3B70; border-radius: 12px; background: var(--card); display: flex; flex-direction: column; max-height: calc(100vh - 100px);">
+      <aside class="chat-panel" style="border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(10px); border-radius: 12px; background: var(--card); display: flex; flex-direction: column; max-height: calc(100vh - 100px);">
         <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border);">
           <h3 style="margin: 0; font-size: 1.1em;">AI Medical Summary</h3>
           <span id="ai-status" style="font-size: 0.85em; color: var(--text-secondary);"></span>
@@ -277,7 +278,7 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Bottom Action Bar - COMPACT -->
         <div class="chat-actions" style="padding: 12px 15px; border-top: 1px solid var(--border); display: flex; gap: 8px;">
           <button id="copy-summary-btn" class="action-btn secondary-action" style="display: none; font-size: 0.85em; padding: 8px 12px;">

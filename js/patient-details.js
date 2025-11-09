@@ -763,6 +763,25 @@ async function saveCompleteConsultation() {
     const transcript = transcription ? transcription.getTranscript() : [];
     const transcriptHTML = generateTranscriptHTML(transcript);
 
+    // Get SOAP note for demographics extraction
+    const soapNote = {
+      subjective: document.getElementById('soap-subjective')?.textContent || '',
+      objective: document.getElementById('soap-objective')?.textContent || '',
+      assessment: document.getElementById('soap-assessment')?.textContent || '',
+      plan: document.getElementById('soap-plan')?.textContent || ''
+    };
+
+    // Extract and save demographics if transcript and SOAP note exist
+    if (transcript.length > 0 && (soapNote.subjective || soapNote.objective || soapNote.assessment || soapNote.plan)) {
+      try {
+        console.log('🔍 Extracting demographics from transcript and SOAP note...');
+        await extractAndSaveDemographics(transcript, soapNote, patient, user.id);
+      } catch (demographicsError) {
+        console.warn('⚠️ Failed to extract demographics:', demographicsError);
+        // Continue with consultation save even if demographics extraction fails
+      }
+    }
+
     const consultationData = {
       user_id: user.id,
       patient_mrn: patient.mrn,
@@ -781,10 +800,10 @@ async function saveCompleteConsultation() {
       transcript: transcript,
       transcript_html: transcriptHTML,
       recording_duration_seconds: transcription ? transcription.getDuration() / 1000 : 0,
-      soap_subjective: document.getElementById('soap-subjective')?.textContent || '',
-      soap_objective: document.getElementById('soap-objective')?.textContent || '',
-      soap_assessment: document.getElementById('soap-assessment')?.textContent || '',
-      soap_plan: document.getElementById('soap-plan')?.textContent || '',
+      soap_subjective: soapNote.subjective,
+      soap_objective: soapNote.objective,
+      soap_assessment: soapNote.assessment,
+      soap_plan: soapNote.plan,
       rec_medications: document.getElementById('rec-medications')?.textContent || '',
       rec_lifestyle: document.getElementById('rec-lifestyle')?.textContent || '',
       rec_followup: document.getElementById('rec-followup')?.textContent || '',
@@ -811,6 +830,133 @@ async function saveCompleteConsultation() {
   } catch (error) {
     console.error('❌ Error:', error);
     showNotification('❌ Failed to save: ' + error.message, 'error');
+    throw error;
+  }
+}
+
+/**
+ * Extract demographics using AI and save/update patient record
+ */
+async function extractAndSaveDemographics(transcript, soapNote, patientInfo, userId) {
+  if (!aiSummary || typeof aiSummary.extractDemographics !== 'function') {
+    console.warn('AI summary system not available for demographics extraction');
+    return;
+  }
+
+  try {
+    // Extract demographics using Gemini
+    const extractedData = await aiSummary.extractDemographics(transcript, soapNote, patientInfo);
+    
+    if (!extractedData || !extractedData.demographics) {
+      console.warn('No demographics extracted');
+      return;
+    }
+
+    const demographics = extractedData.demographics;
+    const medicalInfo = extractedData.medical_info || {};
+    const vitals = extractedData.vitals || {};
+
+    // Check if patient exists in patients table
+    const { data: existingPatient, error: fetchError } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('mrn', patientInfo.mrn)
+      .maybeSingle();
+
+    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "not found"
+      throw fetchError;
+    }
+
+    // Prepare update data - only include fields that have values
+    const updateData = {
+      patient_name: demographics.name || patientInfo.name || null,
+      mrn: demographics.mrn || patientInfo.mrn || null,
+      visit_date: new Date().toISOString()
+    };
+
+    // Add user_id if the column exists (optional column)
+    try {
+      // Check if user_id column exists by trying to query it
+      const testQuery = await supabase.from('patients').select('user_id').limit(1);
+      if (!testQuery.error) {
+        updateData.user_id = userId;
+      }
+    } catch (e) {
+      // user_id column doesn't exist, skip it
+      console.log('user_id column not found in patients table, skipping');
+    }
+
+    // Add date_of_birth if available (required field)
+    if (demographics.date_of_birth) {
+      updateData.date_of_birth = demographics.date_of_birth;
+    } else {
+      // date_of_birth is required, use a placeholder if not available
+      updateData.date_of_birth = '1900-01-01';
+    }
+
+    // If patient exists, only update empty/null fields
+    if (existingPatient) {
+      // Only update fields that are null or empty in existing record
+      const fieldsToUpdate = {};
+      
+      // Check if date_of_birth needs updating (only if current is placeholder or null)
+      const currentDob = existingPatient.date_of_birth;
+      const isPlaceholderDob = currentDob === '1900-01-01' || currentDob === null || !currentDob;
+      if (isPlaceholderDob && demographics.date_of_birth && demographics.date_of_birth !== '1900-01-01') {
+        fieldsToUpdate.date_of_birth = demographics.date_of_birth;
+      }
+      
+      // Update name if empty
+      if ((!existingPatient.patient_name || existingPatient.patient_name.trim() === '') && demographics.name) {
+        fieldsToUpdate.patient_name = demographics.name;
+      }
+
+      // Always update visit_date
+      fieldsToUpdate.visit_date = new Date().toISOString();
+
+      // Update patient if there are fields to update
+      if (Object.keys(fieldsToUpdate).length > 0) {
+        const { error: updateError } = await supabase
+          .from('patients')
+          .update(fieldsToUpdate)
+          .eq('mrn', patientInfo.mrn);
+
+        if (updateError) throw updateError;
+        console.log('✅ Updated existing patient demographics:', fieldsToUpdate);
+      } else {
+        console.log('ℹ️ Patient exists, no empty fields to fill');
+      }
+    } else {
+      // Patient doesn't exist, create new record
+      const { error: insertError } = await supabase
+        .from('patients')
+        .insert([updateData]);
+
+      if (insertError) {
+        // If insert fails due to user_id, try without it
+        if (insertError.message && insertError.message.includes('user_id')) {
+          delete updateData.user_id;
+          const { error: retryError } = await supabase
+            .from('patients')
+            .insert([updateData]);
+          if (retryError) throw retryError;
+        } else {
+          throw insertError;
+        }
+      }
+      console.log('✅ Created new patient record:', updateData);
+    }
+
+    // Store extended demographics in consultations table or a separate demographics table
+    // For now, we'll log it - you can extend this to save to a demographics table if needed
+    console.log('📊 Extracted demographics:', {
+      demographics,
+      medicalInfo,
+      vitals
+    });
+
+  } catch (error) {
+    console.error('❌ Error extracting/saving demographics:', error);
     throw error;
   }
 }
@@ -892,3 +1038,97 @@ function populatePageWithConsultation(consultation) {
 
   showNotification('📄 Loaded previous consultation', 'success');
 }
+
+// ==========================================
+// MISSING DEMOGRAPHICS CHECKER
+// ==========================================
+
+/**
+ * Check for missing demographics and display them
+ */
+async function checkMissingDemographics() {
+  const patient = getPatientFromURL();
+
+  if (!patient.mrn) {
+    document.getElementById('missing-demo-items').innerHTML = '<li>No patient selected</li>';
+    return;
+  }
+
+  try {
+    // Fetch patient data from Supabase
+    const { data: patientData, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('mrn', patient.mrn)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
+
+    // Define required demographics fields
+    const requiredFields = [
+      { key: 'patient_name', label: 'Patient Name' },
+      { key: 'date_of_birth', label: 'Date of Birth' },
+      { key: 'gender', label: 'Gender' },
+      { key: 'race', label: 'Race' },
+      { key: 'ethnicity', label: 'Ethnicity' },
+      { key: 'phone', label: 'Phone Number' },
+      { key: 'email', label: 'Email Address' },
+      { key: 'address', label: 'Street Address' },
+      { key: 'city', label: 'City' },
+      { key: 'state', label: 'State' },
+      { key: 'zip_code', label: 'ZIP Code' },
+      { key: 'emergency_contact_name', label: 'Emergency Contact Name' },
+      { key: 'emergency_contact_phone', label: 'Emergency Contact Phone' },
+      { key: 'insurance_provider', label: 'Insurance Provider' },
+      { key: 'insurance_number', label: 'Insurance Number' },
+      { key: 'primary_care_physician', label: 'Primary Care Physician' }
+    ];
+
+    // Check which fields are missing or placeholder values
+    const missingFields = [];
+
+    if (!patientData) {
+      // Patient record doesn't exist - all fields missing
+      missingFields.push(...requiredFields.map(f => f.label));
+    } else {
+      // Check each field
+      requiredFields.forEach(field => {
+        const value = patientData[field.key];
+        const isMissing = !value ||
+                         value === '' ||
+                         value === null ||
+                         value === '—' ||
+                         (field.key === 'date_of_birth' && value === '1900-01-01');
+
+        if (isMissing) {
+          missingFields.push(field.label);
+        }
+      });
+    }
+
+    // Display missing fields
+    const listElement = document.getElementById('missing-demo-items');
+
+    if (missingFields.length === 0) {
+      listElement.innerHTML = '<li style="color: var(--teal);">✓ All demographics complete</li>';
+    } else {
+      listElement.innerHTML = missingFields
+        .map(field => `<li>${field}</li>`)
+        .join('');
+    }
+
+  } catch (error) {
+    console.error('Error checking demographics:', error);
+    document.getElementById('missing-demo-items').innerHTML = '<li style="color: #FA4616;">Error loading demographics</li>';
+  }
+}
+
+// Call checkMissingDemographics when page loads and after saving
+document.addEventListener('DOMContentLoaded', () => {
+  // Existing initialization code...
+  setTimeout(() => {
+    checkMissingDemographics();
+  }, 1000); // Delay to ensure Supabase is initialized
+});

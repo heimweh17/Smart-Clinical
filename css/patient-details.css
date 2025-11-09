@@ -21,9 +21,9 @@ html, body {
   --uf-orange: #ff5722;
   --uf-orange-dark: #f4511e;
   --teal: #ff5722;
-  --card: rgba(13, 71, 161, 0.85);
+  --card: rgba(59, 130, 246, 0.4);
   --muted: rgba(255, 255, 255, 0.7);
-  --border: rgba(255, 255, 255, 0.2);
+  --border: rgba(255, 255, 255, 0.3);
   --shadow: rgba(0,0,0,0.3);
   --input-bg: rgba(0, 31, 92, 0.5);
   --input-border: rgba(255, 255, 255, 0.2);

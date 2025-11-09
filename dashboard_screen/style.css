@@ -174,18 +174,22 @@ body {
 
 /* Patient Card */
 .patient-card {
-    background: linear-gradient(to right, #1e40af, #1d4ed8);
+    background: rgba(59, 130, 246, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     padding: 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: box-shadow 0.3s;
+    transition: all 0.3s ease;
 }
 
 .patient-card:hover {
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(59, 130, 246, 0.5);
 }
 
 .patient-left {

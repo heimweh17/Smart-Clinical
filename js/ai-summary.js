@@ -366,6 +366,146 @@ REFERRALS:
   }
 
   /**
+   * Extract comprehensive demographic data from transcript and SOAP note
+   * @param {Array} transcript - Conversation transcript
+   * @param {Object} soapNote - Generated SOAP note
+   * @param {Object} patientInfo - Patient information (name, mrn)
+   * @returns {Promise<Object>} - Comprehensive demographic data
+   */
+  async extractDemographics(transcript, soapNote, patientInfo = {}) {
+    const conversationText = this.formatTranscript(transcript);
+    const soapText = `SUBJECTIVE: ${soapNote.subjective || ''}\nOBJECTIVE: ${soapNote.objective || ''}\nASSESSMENT: ${soapNote.assessment || ''}\nPLAN: ${soapNote.plan || ''}`;
+
+    const prompt = `You are a medical data extraction assistant. Extract comprehensive demographic and medical information from the following doctor-patient conversation and SOAP note. Return ONLY a valid JSON object with no additional text.
+
+**Patient Information (already known):**
+- Name: ${patientInfo.name || 'Not provided'}
+- MRN: ${patientInfo.mrn || 'Not provided'}
+
+**Conversation Transcript:**
+${conversationText}
+
+**SOAP Note:**
+${soapText}
+
+**Instructions:**
+1. Extract ALL demographic information mentioned in the conversation
+2. Extract medical history, conditions, medications, allergies
+3. Extract contact information if mentioned
+4. Use null for missing values
+5. Dates should be in YYYY-MM-DD format when possible
+6. Return ONLY valid JSON, no markdown, no explanations
+
+**Return this JSON structure:**
+{
+  "demographics": {
+    "name": "full name or null",
+    "mrn": "medical record number or null",
+    "date_of_birth": "YYYY-MM-DD or null",
+    "age": number or null,
+    "gender": "Male|Female|Other|Unknown|null",
+    "race": "string or null",
+    "ethnicity": "string or null",
+    "phone": "string or null",
+    "email": "string or null",
+    "address": "string or null",
+    "city": "string or null",
+    "state": "string or null",
+    "zip": "string or null",
+    "emergency_contact_name": "string or null",
+    "emergency_contact_phone": "string or null",
+    "insurance_provider": "string or null",
+    "insurance_number": "string or null",
+    "primary_care_physician": "string or null"
+  },
+  "medical_info": {
+    "chief_complaint": "string or null",
+    "primary_pharmacy": "string or null",
+    "allergies": ["allergy1", "allergy2"] or [],
+    "current_medications": ["med1", "med2"] or [],
+    "medical_conditions": ["condition1", "condition2"] or [],
+    "surgical_history": ["surgery1", "surgery2"] or [],
+    "family_history": "string or null",
+    "social_history": "string or null",
+    "last_visit_date": "YYYY-MM-DD or null"
+  },
+  "vitals": {
+    "bp_systolic": number or null,
+    "bp_diastolic": number or null,
+    "heart_rate": number or null,
+    "temperature": number or null,
+    "temperature_unit": "F|C|" or null,
+    "o2_saturation": number or null,
+    "weight": number or null,
+    "weight_unit": "lbs|kg|" or null,
+    "height": number or null,
+    "height_unit": "in|cm|" or null,
+    "bmi": number or null
+  }
+}`;
+
+    try {
+      const aiText = await this.callGeminiAPI(prompt);
+      
+      // Extract JSON from response
+      const jsonMatch = aiText.match(/\{[\s\S]*\}/);
+      const jsonStr = jsonMatch ? jsonMatch[0] : aiText;
+      const parsed = JSON.parse(jsonStr);
+      
+      return parsed;
+    } catch (err) {
+      console.warn('Failed to parse demographics JSON from AI response', err);
+      // Return minimal structure with known info
+      return {
+        demographics: {
+          name: patientInfo.name || null,
+          mrn: patientInfo.mrn || null,
+          date_of_birth: null,
+          age: null,
+          gender: null,
+          race: null,
+          ethnicity: null,
+          phone: null,
+          email: null,
+          address: null,
+          city: null,
+          state: null,
+          zip: null,
+          emergency_contact_name: null,
+          emergency_contact_phone: null,
+          insurance_provider: null,
+          insurance_number: null,
+          primary_care_physician: null
+        },
+        medical_info: {
+          chief_complaint: null,
+          primary_pharmacy: null,
+          allergies: [],
+          current_medications: [],
+          medical_conditions: [],
+          surgical_history: [],
+          family_history: null,
+          social_history: null,
+          last_visit_date: null
+        },
+        vitals: {
+          bp_systolic: null,
+          bp_diastolic: null,
+          heart_rate: null,
+          temperature: null,
+          temperature_unit: null,
+          o2_saturation: null,
+          weight: null,
+          weight_unit: null,
+          height: null,
+          height_unit: null,
+          bmi: null
+        }
+      };
+    }
+  }
+
+  /**
    * Check if currently generating
    */
   isGeneratingSummary() {
