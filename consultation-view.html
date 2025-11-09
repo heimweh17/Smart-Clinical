@@ -124,15 +124,19 @@
     <div class="view-container">
       
       <!-- Action Bar -->
-      <div class="action-bar" style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: flex-end;">
-        <button id="printBtn" class="btn">
-          🖨️ Print
+        <div class="action-bar" style="display: flex; gap: 12px; margin-bottom: 24px; justify-content: space-between;">
+        <button id="deleteConsultationBtn" class="btn" style="background: #dc2626; color: white;">
+            🗑️ Delete
         </button>
-        <button id="exportBtn" class="btn accent">
-          📄 Export
-        </button>
-      </div>
-
+        <div style="display: flex; gap: 12px;">
+            <button id="printBtn" class="btn">
+            🖨️ Print
+            </button>
+            <button id="exportBtn" class="btn accent">
+            📄 Export
+            </button>
+        </div>
+        </div>
       <!-- Patient Name, Time, and MRN Only -->
       <div class="view-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -242,8 +246,36 @@
     document.getElementById('exportBtn').addEventListener('click', () => {
       exportConsultationPDF();
     });
+    // Delete button
+    document.getElementById('deleteConsultationBtn').addEventListener('click', () => {
+    deleteCurrentConsultation();
+    });
 
-    // Load consultation
+    // Delete current consultation
+    async function deleteCurrentConsultation() {
+    if (!confirm('⚠️ Are you sure you want to delete this consultation? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const { error } = await supabase
+        .from('consultations')
+        .delete()
+        .eq('id', consultationId);
+
+        if (error) throw error;
+
+        alert('✅ Consultation deleted successfully');
+        
+        // Go back to documents page
+        window.location.href = `dashboard_screen/documents.html?mrn=${patientMRN}&name=${encodeURIComponent(patientName)}`;
+
+    } catch (error) {
+        console.error('Error deleting:', error);
+        alert('❌ Failed to delete: ' + error.message);
+    }
+    }
+        // Load consultation
     async function loadConsultationView() {
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();

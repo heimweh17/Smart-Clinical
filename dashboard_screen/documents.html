@@ -30,14 +30,42 @@
             padding: 24px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            cursor: pointer;
             transition: all 0.3s ease;
             border-left: 4px solid #0021A5;
+            position: relative;
         }
         
         .document-card:hover {
             box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            transform: translateX(4px);
+        }
+        
+        .document-card-content {
+            cursor: pointer;
+        }
+        
+        .document-card-content:hover {
+            opacity: 0.95;
+        }
+        
+        .delete-consultation-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            color: #dc2626;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .delete-consultation-btn:hover {
+            background: rgba(220, 38, 38, 0.2);
+            transform: scale(1.1);
         }
         
         .document-header {
@@ -47,6 +75,7 @@
             margin-bottom: 16px;
             padding-bottom: 12px;
             border-bottom: 1px solid #eee;
+            padding-right: 40px;
         }
         
         .document-date {
@@ -117,6 +146,74 @@
             font-weight: 600;
             color: #333;
         }
+
+        /* Confirmation Dialog Styles */
+        .confirmation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .confirmation-dialog {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .confirmation-dialog h3 {
+            margin: 0 0 12px 0;
+            color: #dc2626;
+            font-size: 1.2em;
+        }
+
+        .confirmation-dialog p {
+            margin: 0 0 20px 0;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .confirmation-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            background: #e5e7eb;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-cancel:hover {
+            background: #d1d5db;
+        }
+
+        .btn-delete {
+            padding: 10px 20px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-delete:hover {
+            background: #b91c1c;
+        }
     </style>
 </head>
 <body>
@@ -154,6 +251,63 @@
 
         if (patientName) {
             document.getElementById('pageTitle').textContent = `Documents - ${patientName}`;
+        }
+
+        // Show confirmation dialog
+        function showConfirmation(message, onConfirm) {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirmation-overlay';
+            
+            const dialog = document.createElement('div');
+            dialog.className = 'confirmation-dialog';
+            
+            dialog.innerHTML = `
+                <h3>⚠️ Confirm Delete</h3>
+                <p>${message}</p>
+                <div class="confirmation-actions">
+                    <button class="btn-cancel">Cancel</button>
+                    <button class="btn-delete">Delete</button>
+                </div>
+            `;
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+            
+            const cancelBtn = dialog.querySelector('.btn-cancel');
+            const deleteBtn = dialog.querySelector('.btn-delete');
+            
+            const remove = () => overlay.remove();
+            
+            cancelBtn.addEventListener('click', remove);
+            deleteBtn.addEventListener('click', () => {
+                remove();
+                onConfirm();
+            });
+            
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) remove();
+            });
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                background: ${type === 'success' ? '#10b981' : '#dc2626'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-weight: 500;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
         }
 
         async function loadDocuments() {
@@ -236,57 +390,124 @@
             }
 
             card.innerHTML = `
-                <div class="document-header">
-                    <div>
-                        <div class="document-date">${dateStr}</div>
-                        <div style="color: #FA4616; font-weight: 500; margin-top: 4px;">${chiefComplaint}</div>
+                <!-- Delete Button -->
+                <button class="delete-consultation-btn" title="Delete Consultation">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                        <path d="M10 11v6"></path>
+                        <path d="M14 11v6"></path>
+                    </svg>
+                </button>
+
+                <!-- Card Content (clickable) -->
+                <div class="document-card-content">
+                    <div class="document-header">
+                        <div>
+                            <div class="document-date">${dateStr}</div>
+                            <div style="color: #FA4616; font-weight: 500; margin-top: 4px;">${chiefComplaint}</div>
+                        </div>
+                        <div class="document-time">${timeStr}</div>
                     </div>
-                    <div class="document-time">${timeStr}</div>
-                </div>
-                
-                ${consultation.bp ? `
-                <div class="document-section">
-                    <div class="section-title">Vitals</div>
-                    <div class="vitals-grid">
-                        <div class="vital-item">
-                            <div class="vital-label">BP</div>
-                            <div class="vital-value">${consultation.bp}</div>
-                        </div>
-                        <div class="vital-item">
-                            <div class="vital-label">HR</div>
-                            <div class="vital-value">${consultation.hr}</div>
-                        </div>
-                        <div class="vital-item">
-                            <div class="vital-label">Temp</div>
-                            <div class="vital-value">${consultation.temp}</div>
-                        </div>
-                        <div class="vital-item">
-                            <div class="vital-label">O₂</div>
-                            <div class="vital-value">${consultation.o2_sat}</div>
+                    
+                    ${consultation.bp ? `
+                    <div class="document-section">
+                        <div class="section-title">Vitals</div>
+                        <div class="vitals-grid">
+                            <div class="vital-item">
+                                <div class="vital-label">BP</div>
+                                <div class="vital-value">${consultation.bp}</div>
+                            </div>
+                            <div class="vital-item">
+                                <div class="vital-label">HR</div>
+                                <div class="vital-value">${consultation.hr}</div>
+                            </div>
+                            <div class="vital-item">
+                                <div class="vital-label">Temp</div>
+                                <div class="vital-value">${consultation.temp}</div>
+                            </div>
+                            <div class="vital-item">
+                                <div class="vital-label">O₂</div>
+                                <div class="vital-value">${consultation.o2_sat}</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                ` : ''}
-                
-                <div class="document-section">
-                    <div class="section-title">Clinical Summary</div>
-                    <div class="section-content">${soapPreview}</div>
-                </div>
-                
-                <div class="document-tags">
-                    ${consultation.soap_subjective && consultation.soap_subjective !== 'Not documented' ? '<span class="tag">📋 SOAP Note</span>' : ''}
-                    ${consultation.transcript && Array.isArray(consultation.transcript) && consultation.transcript.length > 0 ? '<span class="tag">🎙️ Transcript</span>' : ''}
-                    ${consultation.rec_medications && consultation.rec_medications !== '—' && consultation.rec_medications !== 'None needed' ? '<span class="tag">💡 Recommendations</span>' : ''}
-                    ${consultation.quick_notes ? '<span class="tag">📝 Notes</span>' : ''}
+                    ` : ''}
+                    
+                    <div class="document-section">
+                        <div class="section-title">Clinical Summary</div>
+                        <div class="section-content">${soapPreview}</div>
+                    </div>
+                    
+                    <div class="document-tags">
+                        ${consultation.soap_subjective && consultation.soap_subjective !== 'Not documented' ? '<span class="tag">📋 SOAP Note</span>' : ''}
+                        ${consultation.transcript && Array.isArray(consultation.transcript) && consultation.transcript.length > 0 ? '<span class="tag">🎙️ Transcript</span>' : ''}
+                        ${consultation.rec_medications && consultation.rec_medications !== '—' && consultation.rec_medications !== 'None needed' ? '<span class="tag">💡 Recommendations</span>' : ''}
+                        ${consultation.quick_notes ? '<span class="tag">📝 Notes</span>' : ''}
+                    </div>
                 </div>
             `;
 
-            card.addEventListener('click', () => {
-    // Navigate to READ-ONLY view page
-    window.location.href = `../consultation-view.html?consultation_id=${consultation.id}&mrn=${consultation.patient_mrn}&name=${encodeURIComponent(consultation.patient_name)}`;
-});
+            // Delete button handler
+            const deleteBtn = card.querySelector('.delete-consultation-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteConsultation(consultation, card);
+            });
+
+            // Card click - view consultation
+            const cardContent = card.querySelector('.document-card-content');
+            cardContent.addEventListener('click', () => {
+                window.location.href = `../consultation-view.html?consultation_id=${consultation.id}&mrn=${consultation.patient_mrn}&name=${encodeURIComponent(consultation.patient_name)}`;
+            });
 
             return card;
+        }
+
+        // Delete consultation
+        async function deleteConsultation(consultation, cardElement) {
+            const date = new Date(consultation.consultation_date).toLocaleDateString();
+            
+            showConfirmation(
+                `Are you sure you want to delete the consultation from ${date}? This action cannot be undone.`,
+                async () => {
+                    try {
+                        const { error } = await supabase
+                            .from('consultations')
+                            .delete()
+                            .eq('id', consultation.id);
+
+                        if (error) throw error;
+
+                        // Remove card with animation
+                        cardElement.style.transition = 'all 0.3s ease';
+                        cardElement.style.opacity = '0';
+                        cardElement.style.transform = 'translateX(-20px)';
+                        
+                        setTimeout(() => {
+                            cardElement.remove();
+                            
+                            // Reload if no more documents
+                            const remaining = document.querySelectorAll('.document-card').length;
+                            if (remaining === 0) {
+                                loadDocuments();
+                            } else {
+                                // Update count
+                                const countHeader = document.querySelector('.main-content h2');
+                                if (countHeader) {
+                                    countHeader.textContent = `${remaining} Consultation${remaining !== 1 ? 's' : ''}`;
+                                }
+                            }
+                        }, 300);
+
+                        showNotification('🗑️ Consultation deleted', 'success');
+
+                    } catch (error) {
+                        console.error('Error deleting:', error);
+                        showNotification('❌ Failed to delete: ' + error.message, 'error');
+                    }
+                }
+            );
         }
 
         document.getElementById('logoutBtn').addEventListener('click', async () => {
