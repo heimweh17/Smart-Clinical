@@ -376,7 +376,7 @@
 
                         // Card click navigates to patient details WITH patient info
             patientCard.addEventListener('click', function() {
-              window.location.href = `../patient-details.html?name=${encodeURIComponent(patient.patient_name)}&mrn=${patient.mrn}`;
+              window.location.href = `/patient-details.html?name=${encodeURIComponent(patient.patient_name)}&mrn=${patient.mrn}`;
             });
           });
 
@@ -404,7 +404,7 @@
         const dobFormatted = formatDate(patient.date_of_birth);
 
         // Format visit date
-        const visitFormatted = formatDateTime(patient.visit_date);
+        
 
         // Get initials
         const initials = getInitials(patient.patient_name || 'Unknown');
@@ -568,7 +568,7 @@
             // Get form values
             const patientName = document.getElementById('patientName').value.trim();
             const patientDOB = document.getElementById('patientDOB').value;
-            const visitDate = document.getElementById('visitDate').value;
+            
 
             // Disable submit button
             submitBtn.disabled = true;
@@ -607,7 +607,7 @@
                   patient_name: patientName,
                   date_of_birth: patientDOB,
                   mrn: mrn,
-                  visit_date: visitDate,
+                  
                   user_id: user.id
                 }
               ])
