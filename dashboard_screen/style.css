@@ -5,16 +5,21 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(to bottom right, #1e3a8a, #1e40af, #0f172a);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: linear-gradient(135deg, #001f5c 0%, #003d99 50%, #001f5c 100%);
     min-height: 100vh;
     color: #fff;
 }
 
 /* Header Styles */
 .header {
-    background: #1d4ed8;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background: rgba(13, 71, 161, 0.85);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 .header-container {
@@ -47,13 +52,14 @@ body {
 .avatar-circle {
     width: 2.5rem;
     height: 2.5rem;
-    background: linear-gradient(to bottom right, #fb923c, #ec4899);
+    background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
     color: white;
+    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
 }
 
 .doctor-details {
@@ -71,18 +77,21 @@ body {
 }
 
 .logout-btn {
-    background: #ef4444;
+    background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
     color: white;
     padding: 0.5rem 1.5rem;
     border: none;
     border-radius: 0.5rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
 }
 
 .logout-btn:hover {
-    background: #dc2626;
+    background: linear-gradient(135deg, #f4511e 0%, #e64a19 100%);
+    box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
+    transform: translateY(-1px);
 }
 
 /* Main Content */
@@ -122,21 +131,27 @@ body {
 .search-input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 3rem;
-    background: #1e40af;
-    border: 1px solid #2563eb;
+    background: rgba(0, 31, 92, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 0.5rem;
     color: white;
     font-size: 1rem;
+    transition: all 0.2s;
+    outline: none;
 }
 
 .search-input::placeholder {
-    color: #93c5fd;
+    color: rgba(255, 255, 255, 0.4);
 }
 
 .search-input:focus {
-    outline: none;
-    ring: 2px;
-    ring-color: #3b82f6;
+    background: rgba(0, 31, 92, 0.7);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+.search-input:hover {
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Patient List */
@@ -148,18 +163,21 @@ body {
 
 /* Patient Card */
 .patient-card {
-    background: linear-gradient(to right, #1e40af, #1d4ed8);
+    background: rgba(13, 71, 161, 0.85);
+    backdrop-filter: blur(10px);
     border-radius: 0.75rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     padding: 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: box-shadow 0.3s;
+    transition: all 0.3s;
+    cursor: pointer;
 }
 
 .patient-card:hover {
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
 }
 
 .patient-left {
@@ -317,22 +335,22 @@ body {
   align-items: center;
   gap: 10px;
   padding: 12px 24px;
-  background: #FA4616;
+  background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
   color: #fff;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(250, 70, 22, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
   font-family: inherit;
 }
 
 .add-patient-btn:hover {
-  background: #FF6A3D;
+  background: linear-gradient(135deg, #f4511e 0%, #e64a19 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(250, 70, 22, 0.4);
+  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
 }
 
 .add-patient-btn svg {
@@ -352,11 +370,12 @@ body {
   z-index: 1000;
 }
 
-/* Modal Content - The white popup box */
+/* Modal Content - The popup box */
 .modal-content {
-  background: #1F3666;
-  border: 1px solid rgba(59, 92, 184, 0.3);
-  border-radius: 12px;
+  background: rgba(13, 71, 161, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
   width: 90%;
   max-width: 500px;
   max-height: 90vh;
@@ -370,13 +389,13 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 20px;
-  border-bottom: 1px solid rgba(59, 92, 184, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .modal-header h2 {
   font-size: 18px;
   font-weight: 600;
-  color: #E7ECF5;
+  color: white;
   margin: 0;
 }
 
@@ -384,7 +403,7 @@ body {
 .modal-close {
   background: transparent;
   border: none;
-  color: #94A3B8;
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -394,7 +413,7 @@ body {
 }
 
 .modal-close:hover {
-  color: #FA4616;
+  color: #ff5722;
 }
 
 /* Modal Form */
@@ -409,7 +428,7 @@ body {
 
 .form-group-modal label {
   display: block;
-  color: #D6E6FF;
+  color: white;
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 6px;
@@ -417,23 +436,29 @@ body {
 
 .form-group-modal input {
   width: 100%;
-  background: rgba(15, 33, 69, 0.6);
-  border: 1px solid rgba(59, 92, 184, 0.3);
-  color: #E7ECF5;
+  background: rgba(0, 31, 92, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
   padding: 10px 12px;
   border-radius: 8px;
   font-size: 14px;
   font-family: inherit;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .form-group-modal input:focus {
-  border-color: #FA4616;
+  background: rgba(0, 31, 92, 0.7);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
   outline: none;
 }
 
+.form-group-modal input:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
 .form-group-modal input::placeholder {
-  color: #94A3B8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* Info Box */
@@ -476,31 +501,34 @@ body {
   font-weight: 600;
   font-size: 14px;
   font-family: inherit;
-  background: #FA4616;
+  background: linear-gradient(135deg, #ff5722 0%, #f4511e 100%);
   color: #fff;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
 }
 
 .btn-primary:hover {
-  background: #FF6A3D;
+  background: linear-gradient(135deg, #f4511e 0%, #e64a19 100%);
+  box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   padding: 10px 20px;
   border-radius: 8px;
-  border: 1px solid rgba(59, 92, 184, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
   font-family: inherit;
   background: transparent;
-  color: #D6E6FF;
+  color: white;
   transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  border-color: #FA4616;
-  color: #FA4616;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
 }
 /* Responsive Design */
 @media (max-width: 768px) {
