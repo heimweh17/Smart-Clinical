@@ -365,24 +365,20 @@
             }
 
             // Action buttons and card click (view)
-            const actionBtns = patientCard.querySelectorAll('.action-btn');
-            actionBtns.forEach((btn) => {
-              btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                // Placeholder actions - can be wired to actual routes
-                const title = this.getAttribute('title') || 'Action';
-                alert(`${title} for ${patient.patient_name}`);
-              });
-            });
+            // Action buttons - View Files button
+const viewFilesBtn = patientCard.querySelector('.action-btn[title="View Files"]');
+if (viewFilesBtn) {
+  viewFilesBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    // Navigate to documents page
+    window.location.href = `documents.html?mrn=${patient.mrn}&name=${encodeURIComponent(patient.patient_name)}`;
+  });
+}
 
-            // Card click navigates or opens details
-            patientCard.addEventListener('click', function() {
-              // Navigate to patient details (placeholder)
-              // e.g. window.location.href = `patient-details.html?mrn=${patient.mrn}`;
-              const patientName = patient.patient_name; // or use patient.mrn
-              window.location.href = `../patient-details.html?name=${encodeURIComponent(patientName)}`;
-              
-            });
+            // Card click navigates to patient details WITH patient info
+patientCard.addEventListener('click', function() {
+  window.location.href = `../patient-details.html?name=${encodeURIComponent(patient.patient_name)}&mrn=${patient.mrn}`;
+});
           });
 
           // Initialize search functionality after loading patients
