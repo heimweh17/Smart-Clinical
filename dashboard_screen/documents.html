@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Documents - UF Health SmartScribe</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .document-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid #0021A5;
+        }
+        
+        .document-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateX(4px);
+        }
+        
+        .document-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .document-date {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #0021A5;
+        }
+        
+        .document-time {
+            color: #666;
+            font-size: 0.95em;
+        }
+        
+        .document-section {
+            margin-bottom: 16px;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            color: #0021A5;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .section-content {
+            color: #333;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+        
+        .document-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        
+        .tag {
+            background: #E8F0FF;
+            color: #0021A5;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .vital-item {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .vital-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        
+        .vital-value {
+            font-weight: 600;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <button class="back-btn" onclick="window.location.href='dashboard.html'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Dashboard
+            </button>
+            <h1 class="header-title" id="pageTitle">Patient Documents</h1>
+            <div class="header-right">
+                <button class="logout-btn" id="logoutBtn">Log Out</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div id="documentsList" style="max-width: 1200px; margin: 0 auto;">
+            <div style="text-align: center; padding: 40px; color: #666;">
+                Loading documents...
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const patientMRN = urlParams.get('mrn');
+        const patientName = urlParams.get('name');
+
+        if (patientName) {
+            document.getElementById('pageTitle').textContent = `Documents - ${patientName}`;
+        }
+
+        async function loadDocuments() {
+            const container = document.getElementById('documentsList');
+
+            try {
+                const { data: { user }, error: userError } = await supabase.auth.getUser();
+                if (userError || !user) {
+                    throw new Error('You must be logged in');
+                }
+
+                const { data: consultations, error } = await supabase
+                    .from('consultations')
+                    .select('*')
+                    .eq('patient_mrn', patientMRN)
+                    .eq('user_id', user.id)
+                    .order('consultation_date', { ascending: false });
+
+                if (error) throw error;
+
+                container.innerHTML = '';
+
+                if (!consultations || consultations.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 60px; color: #666;">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" style="margin-bottom: 20px;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <p style="font-size: 1.1em; margin-bottom: 8px;">No consultations found</p>
+                            <p style="font-size: 0.9em; color: #999;">Start a consultation to create documents.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const header = document.createElement('div');
+                header.style.cssText = 'margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #eee;';
+                header.innerHTML = `
+                    <h2 style="margin: 0; color: #333; font-size: 1.3em;">
+                        ${consultations.length} Consultation${consultations.length !== 1 ? 's' : ''}
+                    </h2>
+                `;
+                container.appendChild(header);
+
+                consultations.forEach(consultation => {
+                    const card = createDocumentCard(consultation);
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error loading documents:', error);
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #d32f2f;">Error loading documents.</div>';
+            }
+        }
+
+        function createDocumentCard(consultation) {
+            const card = document.createElement('div');
+            card.className = 'document-card';
+
+            const date = new Date(consultation.consultation_date);
+            const dateStr = date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            const timeStr = date.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            const chiefComplaint = consultation.chief_complaint || 'General Consultation';
+            
+            let soapPreview = '';
+            if (consultation.soap_subjective && consultation.soap_subjective !== 'Not documented') {
+                soapPreview = consultation.soap_subjective.substring(0, 150);
+                if (consultation.soap_subjective.length > 150) soapPreview += '...';
+            } else {
+                soapPreview = 'Click to view full consultation details';
+            }
+
+            card.innerHTML = `
+                <div class="document-header">
+                    <div>
+                        <div class="document-date">${dateStr}</div>
+                        <div style="color: #FA4616; font-weight: 500; margin-top: 4px;">${chiefComplaint}</div>
+                    </div>
+                    <div class="document-time">${timeStr}</div>
+                </div>
+                
+                ${consultation.bp ? `
+                <div class="document-section">
+                    <div class="section-title">Vitals</div>
+                    <div class="vitals-grid">
+                        <div class="vital-item">
+                            <div class="vital-label">BP</div>
+                            <div class="vital-value">${consultation.bp}</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-label">HR</div>
+                            <div class="vital-value">${consultation.hr}</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-label">Temp</div>
+                            <div class="vital-value">${consultation.temp}</div>
+                        </div>
+                        <div class="vital-item">
+                            <div class="vital-label">O₂</div>
+                            <div class="vital-value">${consultation.o2_sat}</div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                <div class="document-section">
+                    <div class="section-title">Clinical Summary</div>
+                    <div class="section-content">${soapPreview}</div>
+                </div>
+                
+                <div class="document-tags">
+                    ${consultation.soap_subjective && consultation.soap_subjective !== 'Not documented' ? '<span class="tag">📋 SOAP Note</span>' : ''}
+                    ${consultation.transcript && Array.isArray(consultation.transcript) && consultation.transcript.length > 0 ? '<span class="tag">🎙️ Transcript</span>' : ''}
+                    ${consultation.rec_medications && consultation.rec_medications !== '—' && consultation.rec_medications !== 'None needed' ? '<span class="tag">💡 Recommendations</span>' : ''}
+                    ${consultation.quick_notes ? '<span class="tag">📝 Notes</span>' : ''}
+                </div>
+            `;
+
+            card.addEventListener('click', () => {
+    // Navigate to READ-ONLY view page
+    window.location.href = `../consultation-view.html?consultation_id=${consultation.id}&mrn=${consultation.patient_mrn}&name=${encodeURIComponent(consultation.patient_name)}`;
+});
+
+            return card;
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            const success = await signOut();
+            if (success) {
+                window.location.href = '../index.html';
+            }
+        });
+
+        (async () => {
+            await protectPage();
+            await loadDocuments();
+        })();
+    </script>
+</body>
+</html>
