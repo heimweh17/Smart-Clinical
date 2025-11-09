@@ -92,14 +92,9 @@
       <!-- Left Sidebar -->
       <aside class="sidebar">
         <!-- Patient Card -->
-        <div class="patient-card">
-          <div class="avatar">AK</div>
-          <div class="patient-meta">
-            <div class="name">Annalise Keating</div>
-            <div class="mrn">MRN: 987654321</div>
-          </div>
-        </div>
-        
+        <div id="patientCardContainer"></div>
+
+      
         <!-- Collapsible Sections -->
         <div class="section">
           <button class="section-header" onclick="toggleSection('demo')">
@@ -393,5 +388,44 @@
       }
     });
   </script>
+  <script type="module">
+    function createPatientCardHTML(patient) {
+      const initials = getInitials(patient.patient_name);
+
+      return `
+        <div class="patient-card">
+          <div class="avatar">${initials}</div>
+          <div class="patient-meta">
+            <div class="name">${patient.patient_name}</div>
+            <div class="mrn">MRN: ${patient.mrn}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function getInitials(name) {
+      return name
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .toUpperCase();
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientName = urlParams.get('name');
+
+    const { data: patient, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('patient_name', patientName)
+      .single();
+
+    if (error) {
+      console.error('Error fetching patient:', error);
+    } else {
+      const container = document.getElementById('patientCardContainer');
+      container.innerHTML = createPatientCardHTML(patient);
+    }
+  </script>
+
 </body>
 </html>
