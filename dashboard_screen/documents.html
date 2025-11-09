@@ -276,12 +276,26 @@
             const cancelBtn = dialog.querySelector('.btn-cancel');
             const deleteBtn = dialog.querySelector('.btn-delete');
             
-            const remove = () => overlay.remove();
+            // FIX: Stop all propagation on dialog and buttons
+            dialog.addEventListener('click', (e) => e.stopPropagation());
+            dialog.addEventListener('mousedown', (e) => e.stopPropagation());
+            dialog.addEventListener('mouseup', (e) => e.stopPropagation());
             
-            cancelBtn.addEventListener('click', remove);
-            deleteBtn.addEventListener('click', () => {
+            const remove = () => {
+                overlay.style.pointerEvents = 'none'; // Prevent click-through
+                setTimeout(() => overlay.remove(), 50); // Defer removal
+            };
+            
+            cancelBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 remove();
-                onConfirm();
+            });
+            
+            deleteBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                remove(); // Remove modal first
+                setTimeout(() => onConfirm(), 100); // Then execute deletion after a small delay
             });
             
             overlay.addEventListener('click', (e) => {
@@ -363,11 +377,57 @@
                 container.innerHTML = '<div style="text-align: center; padding: 40px; color: #d32f2f;">Error loading documents.</div>';
             }
         }
+        
+        function showConfirmation(message, onConfirm) {
+        const overlay = document.createElement('div');
+        overlay.className = 'confirmation-overlay';
+
+        const dialog = document.createElement('div');
+        dialog.className = 'confirmation-dialog';
+        dialog.innerHTML = `
+            <h3>⚠️ Confirm Delete</h3>
+            <p>${message}</p>
+            <div class="confirmation-actions">
+            <button class="btn-cancel">Cancel</button>
+            <button class="btn-delete">Delete</button>
+            </div>
+        `;
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        const cancelBtn = dialog.querySelector('.btn-cancel');
+        const confirmBtn = dialog.querySelector('.btn-delete');
+
+        const cleanup = () => overlay.remove();
+
+        // Prevent any bubbling that could click underlying elements
+        ['click','mousedown','mouseup'].forEach(evt => {
+            cancelBtn.addEventListener(evt, e => e.stopPropagation());
+            confirmBtn.addEventListener(evt, e => e.stopPropagation());
+            dialog.addEventListener(evt, e => e.stopPropagation());
+        });
+
+        // Close when clicking outside the dialog
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) cleanup();
+        });
+
+        cancelBtn.addEventListener('click', () => cleanup(), { once: true });
+
+        confirmBtn.addEventListener('click', async () => {
+            try {
+            await onConfirm();
+            } finally {
+            // Defer removal to prevent click-through to the underlying delete icon
+            setTimeout(cleanup, 0);
+            }
+        }, { once: true });
+        }
 
         function createDocumentCard(consultation) {
             const card = document.createElement('div');
             card.className = 'document-card';
-
             const date = new Date(consultation.consultation_date);
             const dateStr = date.toLocaleDateString('en-US', { 
                 year: 'numeric', 
@@ -378,7 +438,6 @@
                 hour: '2-digit', 
                 minute: '2-digit' 
             });
-
             const chiefComplaint = consultation.chief_complaint || 'General Consultation';
             
             let soapPreview = '';
@@ -388,7 +447,7 @@
             } else {
                 soapPreview = 'Click to view full consultation details';
             }
-
+            
             card.innerHTML = `
                 <!-- Delete Button -->
                 <button class="delete-consultation-btn" title="Delete Consultation">
@@ -399,7 +458,6 @@
                         <path d="M14 11v6"></path>
                     </svg>
                 </button>
-
                 <!-- Card Content (clickable) -->
                 <div class="document-card-content">
                     <div class="document-header">
@@ -447,20 +505,40 @@
                     </div>
                 </div>
             `;
-
-            // Delete button handler
+            
+            // FIX: Attach delete handler BEFORE card content handler and use stopImmediatePropagation
             const deleteBtn = card.querySelector('.delete-consultation-btn');
             deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); 
+                e.stopImmediatePropagation(); // THIS IS KEY - stops ALL propagation
+                e.preventDefault(); 
                 deleteConsultation(consultation, card);
-            });
-
-            // Card click - view consultation
+            }, true); // Use capture phase
+            
+            // Card content click - view consultation
             const cardContent = card.querySelector('.document-card-content');
-            cardContent.addEventListener('click', () => {
+            cardContent.addEventListener('click', (e) => {
+                // Double-check we're not on delete button
+                if (e.target.closest('.delete-consultation-btn')) {
+                    return;
+                }
                 window.location.href = `../consultation-view.html?consultation_id=${consultation.id}&mrn=${consultation.patient_mrn}&name=${encodeURIComponent(consultation.patient_name)}`;
             });
+            card.addEventListener('click', (e) => {
+            const onDeleteBtn = e.target.closest('.delete-consultation-btn');
+            const onContent = e.target.closest('.document-card-content');
 
+            if (onDeleteBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteConsultation(consultation, card);
+            return;
+            }
+
+            if (onContent) {
+            window.location.href = `../consultation-view.html?consultation_id=${consultation.id}&mrn=${consultation.patient_mrn}&name=${encodeURIComponent(consultation.patient_name)}`;
+            }
+        });
             return card;
         }
 
